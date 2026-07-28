@@ -1,0 +1,17 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    // TODO: Replace with your Android app's package name.
+    // This is typically in the format 'com.domain.appname'.
+    // You will define this when you create your Android project, for example, by using Bubblewrap.
+    "package_name": "com.example.app",
+
+    // TODO: Replace with the SHA-256 certificate fingerprint of your app's signing key.
+    // You can generate this using the 'keytool' command provided by the Java JDK.
+    // The Bubblewrap tool can also generate this for you from your signing key.
+    // Example command: "keytool -list -v -keystore your_keystore.jks -alias your_alias"
+    "sha256_cert_fingerprints":
+    ["00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF"]
+  }
+}]
