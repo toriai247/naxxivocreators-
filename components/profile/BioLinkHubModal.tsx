@@ -4,7 +4,8 @@ import {
     LinkHubIcon, QrCodeIcon, CopyIcon, CheckCircleIcon, ExternalLinkIcon,
     EmailIcon, PhoneIcon, LocationIcon, TelegramIcon, WhatsAppIcon,
     LinkedInIcon, GitHubIcon, WebsiteIcon, YouTubeIcon, FacebookIcon,
-    InstagramIcon, TwitterIcon, TikTokIcon, DiscordIcon, ShareIcon
+    InstagramIcon, TwitterIcon, TikTokIcon, DiscordIcon, ShareIcon,
+    SpotifyIcon, TwitchIcon
 } from '../common/AppIcons';
 import Button from '../common/Button';
 
@@ -232,6 +233,12 @@ const BioLinkHubModal: React.FC<BioLinkHubModalProps> = ({ isOpen, onClose, onOp
                                 )}
                                 {profile.github_url && (
                                     <a href={ensureProtocol(profile.github_url)} target="_blank" rel="noreferrer" title="GitHub" className="p-3 bg-gray-900 text-white rounded-2xl shadow-md hover:scale-110 transition-all border border-gray-700"><GitHubIcon className="w-6 h-6"/></a>
+                                )}
+                                {profile.spotify_url && (
+                                    <a href={ensureProtocol(profile.spotify_url)} target="_blank" rel="noreferrer" title="Spotify" className="p-3 bg-[#1DB954] hover:bg-green-500 text-white rounded-2xl shadow-md hover:scale-110 transition-all"><SpotifyIcon className="w-6 h-6"/></a>
+                                )}
+                                {profile.twitch_url && (
+                                    <a href={ensureProtocol(profile.twitch_url)} target="_blank" rel="noreferrer" title="Twitch" className="p-3 bg-[#9146FF] hover:bg-purple-600 text-white rounded-2xl shadow-md hover:scale-110 transition-all"><TwitchIcon className="w-6 h-6"/></a>
                                 )}
                                 {(!profile.website_url && !profile.youtube_url && !profile.facebook_url && !profile.instagram_url && !profile.twitter_url && !profile.tiktok_url && !profile.discord_url && !profile.telegram_url && !profile.whatsapp_url && !profile.linkedin_url && !profile.github_url) && (
                                     <p className="text-xs text-[var(--theme-text-secondary)] italic">
