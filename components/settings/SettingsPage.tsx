@@ -11,6 +11,7 @@ import type { Tables } from '../../integrations/supabase/types';
 import LoadingSpinner from '../common/LoadingSpinner';
 import Avatar from '../common/Avatar';
 import { formatXp } from '../../utils/helpers';
+import PerformanceToggle from '../common/PerformanceToggle';
 
 interface SettingsPageProps {
     session: Session;
@@ -144,6 +145,18 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                             <SettingsItem {...item} />
                         </div>
                     ))}
+                </motion.div>
+
+                {/* Performance & Graphics Mode Control Card */}
+                <motion.div
+                    {...{
+                        initial: { opacity: 0, y: -20 },
+                        animate: { opacity: 1, y: 0 },
+                        transition: { delay: 0.25 },
+                    } as any}
+                    className="mt-6"
+                >
+                    <PerformanceToggle variant="settings" />
                 </motion.div>
                 
                  <motion.div 

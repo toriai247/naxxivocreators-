@@ -428,3 +428,85 @@ body {
   @apply fixed bottom-20 left-1/2 -translate-x-1/2 w-full max-w-sm flex items-center p-3 z-40 bg-gradient-to-r from-purple-600 to-indigo-700 text-white rounded-xl shadow-lg cursor-pointer mx-4;
   width: calc(100% - 2rem);
 }
+
+/* ==========================================
+   PERFORMANCE MODE: LOW (0-LAG LITE OVERRIDES)
+   ========================================== */
+html.perf-mode-low,
+html.perf-mode-low body {
+  text-rendering: optimizeSpeed !important;
+  -webkit-font-smoothing: antialiased;
+}
+
+html.perf-mode-low *,
+html.perf-mode-low *::before,
+html.perf-mode-low *::after {
+  animation-duration: 0.0001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.0001ms !important;
+  scroll-behavior: auto !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+/* Remove blur filters for max GPU/CPU performance */
+html.perf-mode-low .blur,
+html.perf-mode-low .blur-sm,
+html.perf-mode-low .blur-md,
+html.perf-mode-low .blur-lg,
+html.perf-mode-low .blur-xl,
+html.perf-mode-low .blur-2xl,
+html.perf-mode-low .blur-3xl {
+  filter: none !important;
+  -webkit-filter: none !important;
+}
+
+/* Strip pulse & spinning animations in low mode */
+html.perf-mode-low .animate-pulse,
+html.perf-mode-low .animate-bounce,
+html.perf-mode-low .animate-spin {
+  animation: none !important;
+}
+
+/* Clean box solid backgrounds */
+html.perf-mode-low .bg-white\/80,
+html.perf-mode-low .bg-white\/90,
+html.perf-mode-low .bg-white\/70,
+html.perf-mode-low .bg-slate-900\/80,
+html.perf-mode-low .bg-slate-900\/90,
+html.perf-mode-low .bg-black\/80,
+html.perf-mode-low .bg-black\/90 {
+  background-color: var(--theme-card-bg) !important;
+}
+
+/* Disable background animated gradients in low performance mode */
+html.perf-mode-low .luck-royale-bg-v2,
+html.perf-mode-low .animate-gradient {
+  animation: none !important;
+  background: #0f172a !important;
+}
+
+/* Remove hover transforms to avoid layout repaint thrashing */
+html.perf-mode-low .hover\:scale-105:hover,
+html.perf-mode-low .hover\:scale-110:hover,
+html.perf-mode-low .hover\:-translate-y-1:hover {
+  transform: none !important;
+}
+
+/* Flat sharp borders for fast rendering */
+html.perf-mode-low .rounded-3xl,
+html.perf-mode-low .rounded-2xl {
+  border-radius: 8px !important;
+}
+
+/* Indicator badge styling */
+.perf-badge-low {
+  background-color: #10b981;
+  color: #ffffff;
+  font-weight: 800;
+  font-family: monospace;
+}
+
+

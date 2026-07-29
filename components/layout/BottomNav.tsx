@@ -33,9 +33,16 @@ const BottomNav: React.FC<BottomNavProps> = ({ activeView, setAuthView }) => {
                         <button
                             key={item.view}
                             onClick={() => setAuthView(item.view as 'discover' | 'chess' | 'profile' | 'messages')}
-                            className={`transition-all duration-200 relative flex flex-col items-center justify-center h-full sm:h-16 w-20 sm:w-24 sm:rounded-2xl ${isActive ? 'text-[var(--theme-primary)] sm:bg-white/5 sm:scale-105' : 'text-[var(--theme-header-text)]/70 hover:text-[var(--theme-header-text)] hover:scale-105'}`}
+                            className={`transition-all duration-200 relative flex flex-col items-center justify-center h-full sm:h-16 w-20 sm:w-24 sm:rounded-2xl ${isActive ? 'text-[var(--theme-primary)] scale-105' : 'text-[var(--theme-header-text)]/70 hover:text-[var(--theme-header-text)] hover:scale-105'}`}
                             aria-label={item.label}
                         >
+                            {isActive && (
+                                <motion.div
+                                    layoutId="active-nav-pill"
+                                    className="absolute inset-1 sm:inset-0 bg-white/10 dark:bg-white/10 rounded-xl sm:rounded-2xl -z-10 border border-white/10 shadow-xs"
+                                    transition={{ type: "spring", stiffness: 400, damping: 32 }}
+                                />
+                            )}
                             <Icon isActive={isActive} />
                             <span className="text-[10px] sm:text-xs font-semibold mt-1 tracking-wide">{item.label}</span>
                             {isActive && <motion.div {...{layoutId: "active-nav-dot"} as any} className="absolute bottom-1 sm:bottom-1.5 left-1/2 -translate-x-1/2 w-1.5 sm:w-2 h-1.5 sm:h-2 bg-[var(--theme-primary)] rounded-full shadow-[0_0_8px_var(--theme-primary)]" />}

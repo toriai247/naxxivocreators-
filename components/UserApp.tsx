@@ -7,6 +7,8 @@ import PasswordModal from './common/PasswordModal';
 import { motion, AnimatePresence } from 'framer-motion';
 import NotificationPopup, { type NotificationDetails } from './common/NotificationPopup';
 import Button from './common/Button';
+import PerformanceToggle from './common/PerformanceToggle';
+import { usePerformanceMode } from '../utils/performanceMode';
 import type { Json } from '../integrations/supabase/types';
 
 // Lazy load pages
@@ -46,16 +48,52 @@ export type AuthView =
     'store' | 'collection' | 'info' | 'earn-xp' | 'upload-cover' | 'notifications' | 'events' | 'luck-royale' | 'sell-page' |
     'password-security' | 'privacy' | 'image-editor' | 'image-compressor';
 
+const TAB_INDEX_MAP: Record<string, number> = {
+    'discover': 0,
+    'messages': 1,
+    'profile': 2,
+    'settings': 2,
+    'edit-profile': 2,
+    'music-library': 2,
+    'tools': 2,
+    'anime': 2,
+    'anime-series': 2,
+    'create-series': 2,
+    'create-episode': 2,
+    'top-up': 2,
+    'subscriptions': 2,
+    'manual-payment': 2,
+    'store': 2,
+    'collection': 2,
+    'info': 2,
+    'earn-xp': 2,
+    'upload-cover': 2,
+    'notifications': 2,
+    'events': 2,
+};
+
 const pageVariants = {
-    initial: { opacity: 0, y: 12 },
-    in: { opacity: 1, y: 0 },
-    out: { opacity: 0, y: -12 },
+    initial: (direction: number) => ({
+        opacity: 0,
+        x: direction > 0 ? 32 : direction < 0 ? -32 : 0,
+        y: direction === 0 ? 12 : 0,
+    }),
+    in: {
+        opacity: 1,
+        x: 0,
+        y: 0,
+    },
+    out: (direction: number) => ({
+        opacity: 0,
+        x: direction > 0 ? -32 : direction < 0 ? 32 : 0,
+        y: direction === 0 ? -12 : 0,
+    }),
 };
 
 const pageTransition = {
     type: "tween",
-    ease: "easeOut",
-    duration: 0.22,
+    ease: [0.25, 0.1, 0.25, 1.0],
+    duration: 0.24,
 };
 
 interface UserAppProps {
@@ -64,7 +102,26 @@ interface UserAppProps {
 }
 
 const UserApp: React.FC<UserAppProps> = ({ session, onEnterAdminView }) => {
+    const { isLowMode } = usePerformanceMode();
     const [authView, setAuthView] = useState<AuthView>('discover');
+    const [slideDirection, setSlideDirection] = useState<number>(1);
+    const prevAuthViewRef = React.useRef<AuthView>('discover');
+
+    useEffect(() => {
+        const prevIdx = TAB_INDEX_MAP[prevAuthViewRef.current] ?? 0;
+        const currentIdx = TAB_INDEX_MAP[authView] ?? 0;
+
+        if (currentIdx > prevIdx) {
+            setSlideDirection(1);
+        } else if (currentIdx < prevIdx) {
+            setSlideDirection(-1);
+        } else {
+            setSlideDirection(0);
+        }
+
+        prevAuthViewRef.current = authView;
+    }, [authView]);
+
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
     const [viewingProfileId, setViewingProfileId] = useState<string | null>(null);
@@ -304,15 +361,16 @@ const UserApp: React.FC<UserAppProps> = ({ session, onEnterAdminView }) => {
         pageContent = (
             <>
                 <main className={`${isHideBottomNav ? '' : `pb-24 sm:pb-28 ${!isFullScreenPage ? 'pt-4 px-4 sm:pt-8 sm:px-8 max-w-7xl mx-auto' : ''}`}`}>
-                    <AnimatePresence mode="wait">
+                    <AnimatePresence mode="wait" custom={isLowMode ? 0 : slideDirection}>
                         <motion.div
                             key={authView + (viewingProfileId || '') + (viewingSeriesId || '')}
+                            custom={isLowMode ? 0 : slideDirection}
                             {...{
-                                variants: pageVariants,
+                                variants: isLowMode ? { initial: { opacity: 1 }, in: { opacity: 1 }, out: { opacity: 1 } } : pageVariants,
                                 initial: "initial",
                                 animate: "in",
                                 exit: "out",
-                                transition: pageTransition,
+                                transition: isLowMode ? { duration: 0 } : pageTransition,
                             } as any}
                         >
                             <Suspense fallback={<div className="flex h-[80vh] items-center justify-center text-[var(--theme-text-secondary)]">Loading...</div>}>
@@ -343,6 +401,11 @@ const UserApp: React.FC<UserAppProps> = ({ session, onEnterAdminView }) => {
 
     return (
         <div className="w-full min-h-screen bg-[var(--theme-bg)] flex justify-center overflow-x-hidden">
+            {/* Quick Performance Mode Toggle Badge (Top Left) */}
+            <div className="fixed top-3 left-3 z-[60] shrink-0 pointer-events-auto">
+                <PerformanceToggle variant="badge" />
+            </div>
+
             <div className={`w-full min-h-screen bg-[var(--theme-bg)] relative overflow-x-hidden ${isLuckRoyale ? 'h-screen overflow-hidden' : ''}`}>
                 {showPermissionBanner && (
                     <div className="absolute top-0 left-0 right-0 bg-[var(--theme-primary)] text-[var(--theme-primary-text)] p-3 z-[101] text-center shadow-lg">

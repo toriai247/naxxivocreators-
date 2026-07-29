@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { Session } from '@supabase/auth-js';
+import PerformanceToggle from '../common/PerformanceToggle';
 import AdminDashboard from './AdminDashboard';
 import UserManagementPage from './UserManagementPage';
 import PaymentQueuePage from './PaymentQueuePage';
@@ -137,6 +138,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ session, onExitAdminView }) => 
                     </div>
 
                     <div className="flex items-center space-x-3 text-xs">
+                        <PerformanceToggle variant="badge" />
                         <div className="hidden sm:flex items-center space-x-2 text-[10px] text-slate-700 bg-yellow-50 px-2.5 py-1 border border-yellow-300 font-mono">
                             <span className="w-2 h-2 rounded-none bg-yellow-500 animate-pulse"></span>
                             <span className="font-bold text-slate-900">BINANCE LIGHT THEME ACTIVE</span>
