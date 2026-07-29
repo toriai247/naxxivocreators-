@@ -36,6 +36,7 @@ const EditProfilePage: React.FC<EditProfilePageProps> = ({ session, onBack, onPr
     const [discordUrl, setDiscordUrl] = useState('');
     const [gender, setGender] = useState('');
     const [bioTagline, setBioTagline] = useState('');
+    const [contentKeywords, setContentKeywords] = useState('');
     const [contactEmail, setContactEmail] = useState('');
     const [contactPhone, setContactPhone] = useState('');
     const [contactLocation, setContactLocation] = useState('');
@@ -87,6 +88,7 @@ const EditProfilePage: React.FC<EditProfilePageProps> = ({ session, onBack, onPr
                     setDiscordUrl(profileData.discord_url || '');
                     setGender(profileData.gender || '');
                     setBioTagline(profileData.bio_tagline || '');
+                    setContentKeywords(profileData.content_keywords || '');
                     setContactEmail(profileData.contact_email || '');
                     setContactPhone(profileData.contact_phone || '');
                     setContactLocation(profileData.contact_location || '');
@@ -170,6 +172,7 @@ const EditProfilePage: React.FC<EditProfilePageProps> = ({ session, onBack, onPr
                 discord_url: discordUrl,
                 gender: gender || null,
                 bio_tagline: bioTagline || null,
+                content_keywords: contentKeywords || null,
                 contact_email: contactEmail || null,
                 contact_phone: contactPhone || null,
                 contact_location: contactLocation || null,
@@ -279,6 +282,43 @@ const EditProfilePage: React.FC<EditProfilePageProps> = ({ session, onBack, onPr
                         <Input id="whatsappUrl" label="WhatsApp Link / Number" value={whatsappUrl} onChange={e => setWhatsappUrl(e.target.value)} disabled={isSaving} />
                         <Input id="linkedinUrl" label="LinkedIn Profile URL" value={linkedinUrl} onChange={e => setLinkedinUrl(e.target.value)} disabled={isSaving} />
                         <Input id="githubUrl" label="GitHub Profile URL" value={githubUrl} onChange={e => setGithubUrl(e.target.value)} disabled={isSaving} />
+                    </div>
+                </section>
+
+                <section className="bg-[var(--theme-card-bg)] p-6 rounded-2xl shadow-sm">
+                    <h3 className="text-lg font-bold text-[var(--theme-text)] mb-2">🎯 Creator Content Keywords & Topics</h3>
+                    <p className="text-xs text-[var(--theme-text-secondary)] mb-4">Add comma-separated keywords describing your content (e.g. <code>Gaming, Anime AMV, Tech Reviews, Vlogs, Music, Motion Design</code>). This makes your profile easily discoverable in creator searches!</p>
+                    <div className="space-y-4">
+                        <Input 
+                            id="contentKeywords" 
+                            label="Content Keywords / Niche Tags" 
+                            value={contentKeywords} 
+                            onChange={e => setContentKeywords(e.target.value)} 
+                            placeholder="e.g. Gaming, Anime AMV, Tech Reviews, Vlogs, Music, Editing" 
+                            disabled={isSaving} 
+                        />
+                        <div className="flex flex-wrap gap-1.5 pt-1">
+                            <span className="text-[10px] font-extrabold uppercase text-indigo-400 mr-1 flex items-center">Quick Add:</span>
+                            {['🎮 Gaming', '🎬 Vlogs', '🎨 Editing & AMV', '🎵 Music', '💻 Tech & Dev', '🍿 Anime', '⚽ Sports', '📸 Photography', '🎓 Education'].map(tag => {
+                                const cleanTag = tag.replace(/^[^\w\s]+/, '').trim();
+                                return (
+                                    <button
+                                        key={tag}
+                                        type="button"
+                                        onClick={() => {
+                                            const existing = contentKeywords ? contentKeywords.split(',').map(s => s.trim()).filter(Boolean) : [];
+                                            if (!existing.includes(cleanTag)) {
+                                                const updated = [...existing, cleanTag].join(', ');
+                                                setContentKeywords(updated);
+                                            }
+                                        }}
+                                        className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 transition-all hover:scale-105 active:scale-95"
+                                    >
+                                        + {tag}
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
                 </section>
 

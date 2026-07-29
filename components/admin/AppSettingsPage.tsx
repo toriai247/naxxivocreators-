@@ -122,45 +122,77 @@ const AppSettingsPage: React.FC = () => {
         }
     };
 
-    if (loading) return <div className="flex justify-center items-center h-full"><LoadingSpinner /></div>;
-    if (error) return <p className="text-red-500">{error}</p>;
+    if (loading) return <div className="flex justify-center items-center py-12 text-slate-400 text-xs font-mono"><LoadingSpinner /></div>;
+    if (error) return <div className="p-4 bg-rose-950/60 border border-rose-800 text-rose-200 text-xs font-mono">{error}</div>;
 
     return (
-        <div className="bg-[var(--theme-card-bg)] p-6 rounded-xl shadow-lg border border-[var(--theme-secondary)]">
-             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                 <div>
-                     <h2 className="text-2xl font-bold text-[var(--theme-text)]">Application Settings</h2>
-                     <p className="text-[var(--theme-text-secondary)] mt-1">Manage global settings for the application. Be careful, these changes are live.</p>
-                 </div>
-                 <Button onClick={handleInitializeDefaults} variant="secondary" size="small" className="w-auto px-4 whitespace-nowrap bg-purple-600/20 text-purple-300 border border-purple-500/30 hover:bg-purple-600/30">
-                     ⚡ Initialize / Reset Defaults in DB
-                 </Button>
-             </div>
-            <div className="space-y-6 pt-6">
+        <div className="space-y-4 font-sans">
+            {/* Control Bar */}
+            <div className="bg-yellow-400 border border-slate-900 p-3.5 text-slate-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
+                <div>
+                    <h2 className="text-xs font-black text-slate-950 uppercase tracking-wider font-mono">GLOBAL SYSTEM & APP CONFIGURATION</h2>
+                    <p className="text-[10px] text-slate-800 font-mono font-bold">Live JSON configuration for payment wallets, Luck Royale mechanics, and app flags</p>
+                </div>
+                <button 
+                    onClick={handleInitializeDefaults} 
+                    className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-yellow-400 border border-slate-900 text-xs font-black transition-none font-mono"
+                >
+                    [SEED / RESET DEFAULTS]
+                </button>
+            </div>
+
+            {/* Settings Cards List */}
+            <div className="space-y-3">
                 {settings.map(setting => (
-                    <div key={setting.key} className="p-4 border border-[var(--theme-secondary)] rounded-lg bg-[var(--theme-card-bg-alt)]/50">
-                        <h3 className="font-semibold text-lg capitalize text-[var(--theme-text)]/90">{setting.key.replace(/_/g, ' ')}</h3>
-                        <p className="text-sm text-[var(--theme-text-secondary)] mb-2">{setting.description}</p>
+                    <div key={setting.key} className="p-4 border border-slate-200 bg-white space-y-2 shadow-sm">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-slate-200 pb-2">
+                            <div>
+                                <span className="text-xs font-black text-slate-900 uppercase tracking-wide font-mono">
+                                    {setting.key.replace(/_/g, ' ')}
+                                </span>
+                                <span className="ml-2 text-[10px] px-2 py-0.5 bg-yellow-100 border border-yellow-300 text-slate-900 font-bold font-mono">
+                                    KEY: {setting.key}
+                                </span>
+                            </div>
+                            {editingKey !== setting.key && (
+                                <button 
+                                    onClick={() => handleEdit(setting)} 
+                                    className="px-2.5 py-1 bg-yellow-400 hover:bg-yellow-300 text-slate-950 border border-slate-900 text-[10px] font-black active:bg-yellow-500 transition-none font-mono"
+                                >
+                                    [EDIT CONFIG]
+                                </button>
+                            )}
+                        </div>
+
+                        <p className="text-[11px] text-slate-600">{setting.description}</p>
+
                         {editingKey === setting.key ? (
-                            <div className="space-y-2">
+                            <div className="space-y-2 pt-2">
                                 <textarea
                                     value={editValue}
                                     onChange={(e) => setEditValue(e.target.value)}
-                                    className="json-textarea"
-                                    rows={8}
+                                    className="w-full p-3 bg-slate-900 text-yellow-300 border border-slate-900 font-mono text-xs focus:outline-none"
+                                    rows={10}
                                 />
-                                <div className="flex space-x-2">
-                                    <Button onClick={() => handleSave(setting.key)} size="small" className="w-auto px-4">Save</Button>
-                                    <Button onClick={handleCancel} variant="secondary" size="small" className="w-auto px-4">Cancel</Button>
+                                <div className="flex space-x-2 font-mono">
+                                    <button 
+                                        onClick={() => handleSave(setting.key)} 
+                                        className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs border border-emerald-700 transition-none"
+                                    >
+                                        [SAVE CONFIG]
+                                    </button>
+                                    <button 
+                                        onClick={handleCancel} 
+                                        className="px-3.5 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-800 font-black text-xs border border-slate-300 transition-none"
+                                    >
+                                        [CANCEL]
+                                    </button>
                                 </div>
                             </div>
                         ) : (
-                            <div>
-                                <pre className="json-textarea p-3 text-sm overflow-x-auto text-[var(--theme-text-secondary)]">
-                                    {JSON.stringify(setting.value, null, 2)}
-                                </pre>
-                                <button onClick={() => handleEdit(setting)} className="text-sm font-semibold mt-2 btn-edit">Edit</button>
-                            </div>
+                            <pre className="p-3 bg-slate-900 border border-slate-900 text-[11px] text-yellow-400 font-mono overflow-x-auto">
+                                {JSON.stringify(setting.value, null, 2)}
+                            </pre>
                         )}
                     </div>
                 ))}

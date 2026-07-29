@@ -3,7 +3,7 @@ import { uploadToImgBB } from '../../utils/imgbbService';
 import { compressImage } from '../../utils/imageCompressor';
 import LoadingSpinner from './LoadingSpinner';
 import { motion, AnimatePresence } from 'framer-motion';
-import ImageEditorModal from '../editor/ImageEditorModal';
+import LightroomEditorStudio from '../editor/LightroomEditorStudio';
 import { UploadStepTracker } from './UploadStepTracker';
 
 export interface DirectImageUrlInputProps {
@@ -364,19 +364,23 @@ export const DirectImageUrlInput: React.FC<DirectImageUrlInputProps> = ({
                 </AnimatePresence>
             )}
 
-            {/* Embedded Studio Modal */}
-            <ImageEditorModal
-                isOpen={isEditorOpen}
-                onClose={() => setIsEditorOpen(false)}
-                initialImageUrl={value || ''}
-                onSave={(newUrl) => {
-                    onChange(newUrl);
-                    setSuccessMsg("✨ Edited photo saved & URL updated automatically!");
-                    setTimeout(() => setSuccessMsg(null), 4000);
-                }}
-                title={`🎨 Edit & Craft: ${label || 'Image'}`}
-                defaultAspectRatio={previewAspectRatio === 'square' ? '1:1' : previewAspectRatio === 'cover' ? '16:9' : 'free'}
-            />
+            {/* Embedded Lightroom Studio Modal Overlay */}
+            <AnimatePresence>
+                {isEditorOpen && (
+                    <div className="fixed inset-0 z-[99999] bg-black/90 backdrop-blur-2xl flex flex-col">
+                        <LightroomEditorStudio
+                            onBack={() => setIsEditorOpen(false)}
+                            initialImageUrl={value || ''}
+                            onSave={(newUrl) => {
+                                onChange(newUrl);
+                                setIsEditorOpen(false);
+                                setSuccessMsg("✨ Edited photo saved & URL updated automatically!");
+                                setTimeout(() => setSuccessMsg(null), 4000);
+                            }}
+                        />
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

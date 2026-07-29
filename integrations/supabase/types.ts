@@ -399,6 +399,7 @@ export interface Database {
           linkedin_url: string | null
           github_url: string | null
           bio_tagline: string | null
+          content_keywords: string | null
         }
         Insert: {
           id: string
@@ -434,6 +435,7 @@ export interface Database {
           linkedin_url?: string | null
           github_url?: string | null
           bio_tagline?: string | null
+          content_keywords?: string | null
         }
         Update: {
           bio?: string | null
@@ -468,6 +470,7 @@ export interface Database {
           linkedin_url?: string | null
           github_url?: string | null
           bio_tagline?: string | null
+          content_keywords?: string | null
         }
       },
       user_subscriptions: {

@@ -34,8 +34,6 @@ const UploadCoverPage = lazy(() => import('./store/UploadCoverPage'));
 const NotificationsPage = lazy(() => import('./notifications/NotificationsPage'));
 const EventsPage = lazy(() => import('./events/EventsPage'));
 const LuckRoyalePage = lazy(() => import('./events/LuckRoyalePage'));
-const ReversiPage = lazy(() => import('./game/ReversiPage'));
-const ChessPage = lazy(() => import('./game/ChessPage'));
 const ImageEditorPage = lazy(() => import('./editor/ImageEditorPage'));
 const PasswordSecurityPage = lazy(() => import('./settings/PasswordSecurityPage'));
 const PrivacyPage = lazy(() => import('./settings/PrivacyPage'));
@@ -46,7 +44,7 @@ export type AuthView =
     'tools' | 'anime' | 'anime-series' | 'create-series' | 'create-episode' |
     'top-up' | 'subscriptions' | 'manual-payment' |
     'store' | 'collection' | 'info' | 'earn-xp' | 'upload-cover' | 'notifications' | 'events' | 'luck-royale' | 'sell-page' |
-    'password-security' | 'privacy' | 'reversi' | 'chess' | 'image-editor' | 'image-compressor';
+    'password-security' | 'privacy' | 'image-editor' | 'image-compressor';
 
 const pageVariants = {
     initial: { opacity: 0, y: 12 },
@@ -186,7 +184,6 @@ const UserApp: React.FC<UserAppProps> = ({ session, onEnterAdminView }) => {
     const handleNavigateToNotifications = () => setAuthView('notifications');
     const handleNavigateToEvents = () => setAuthView('events');
     const handleNavigateToLuckRoyale = () => setAuthView('luck-royale');
-    const handleNavigateToReversi = () => setAuthView('reversi');
     const handleNavigateToPasswordSecurity = () => setAuthView('password-security');
     const handleNavigateToPrivacy = () => setAuthView('privacy');
     const handleNavigateToImageEditor = () => setAuthView('image-editor');
@@ -213,7 +210,6 @@ const UserApp: React.FC<UserAppProps> = ({ session, onEnterAdminView }) => {
     } else {
         const CurrentPage = {
             discover: <UsersPage session={session} onViewProfile={handleViewProfile} />,
-            chess: <ChessPage />,
             messages: <MessagesPage session={session} onStartChat={setChattingWith} />,
             profile: <Profile 
                         session={session} 
@@ -262,7 +258,6 @@ const UserApp: React.FC<UserAppProps> = ({ session, onEnterAdminView }) => {
                         onNavigateToInfo={handleNavigateToInfo} 
                         onNavigateToEarnXp={handleNavigateToEarnXp}
                         onNavigateToEvents={handleNavigateToEvents}
-                        onNavigateToReversi={handleNavigateToReversi}
                         onNavigateToImageEditor={handleNavigateToImageEditor}
                         onNavigateToImageCompressor={handleNavigateToImageCompressor}
                    />,
@@ -291,7 +286,6 @@ const UserApp: React.FC<UserAppProps> = ({ session, onEnterAdminView }) => {
             notifications: <NotificationsPage session={session} onBack={() => setAuthView('discover')} onMarkAllRead={() => setUnreadNotificationCount(0)} />,
             events: <EventsPage onBack={() => setAuthView('tools')} onNavigateToLuckRoyale={handleNavigateToLuckRoyale} />,
             'luck-royale': <LuckRoyalePage onBack={() => setAuthView('events')} session={session} showNotification={showNotification} />,
-            reversi: <ReversiPage onBack={() => setAuthView('tools')} />,
             'password-security': <PasswordSecurityPage onBack={() => setAuthView('settings')} showNotification={showNotification} />,
             'privacy': <PrivacyPage onBack={() => setAuthView('settings')} />,
             'image-editor': <ImageEditorPage onBack={() => setAuthView('tools')} />,
@@ -301,13 +295,15 @@ const UserApp: React.FC<UserAppProps> = ({ session, onEnterAdminView }) => {
         const isFullScreenPage = [
             'profile', 'music-library', 'tools', 'anime', 'anime-series', 'create-series', 'create-episode',
             'top-up', 'subscriptions', 'manual-payment', 'settings', 'edit-profile', 'password-security', 'privacy',
-            'store', 'collection', 'sell-page', 'info', 'earn-xp', 'upload-cover', 'notifications', 'events', 'luck-royale', 'reversi',
-            'chess', 'discover', 'messages', 'image-editor', 'image-compressor'
+            'store', 'collection', 'sell-page', 'info', 'earn-xp', 'upload-cover', 'notifications', 'events', 'luck-royale',
+            'discover', 'messages', 'image-editor', 'image-compressor'
         ].includes(authView);
+
+        const isHideBottomNav = isLuckRoyale || authView === 'image-editor' || authView === 'image-compressor';
 
         pageContent = (
             <>
-                <main className={`${isLuckRoyale ? '' : `pb-24 sm:pb-28 ${!isFullScreenPage ? 'pt-4 px-4 sm:pt-8 sm:px-8 max-w-7xl mx-auto' : ''}`}`}>
+                <main className={`${isHideBottomNav ? '' : `pb-24 sm:pb-28 ${!isFullScreenPage ? 'pt-4 px-4 sm:pt-8 sm:px-8 max-w-7xl mx-auto' : ''}`}`}>
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={authView + (viewingProfileId || '') + (viewingSeriesId || '')}
@@ -325,7 +321,7 @@ const UserApp: React.FC<UserAppProps> = ({ session, onEnterAdminView }) => {
                         </motion.div>
                     </AnimatePresence>
                 </main>
-                {!isLuckRoyale && <BottomNav
+                {!isHideBottomNav && <BottomNav
                     activeView={authView}
                     setAuthView={handleSetAuthView as (view: 'discover' | 'chess' | 'profile' | 'messages') => void}
                 />}

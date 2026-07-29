@@ -1,17 +1,16 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { MessageIcon, DiscoverIcon, ProfileIcon, ChessIcon } from '../common/AppIcons';
+import { MessageIcon, UsersIcon, ProfileIcon, DiscoverIcon } from '../common/AppIcons';
 import type { AuthView } from '../UserApp';
 
 interface BottomNavProps {
     activeView: AuthView;
-    setAuthView: (view: 'discover' | 'chess' | 'profile' | 'messages') => void;
+    setAuthView: (view: 'discover' | 'profile' | 'messages' | 'tools') => void;
 }
 
 const BottomNav: React.FC<BottomNavProps> = ({ activeView, setAuthView }) => {
     const navItems = [
-        { view: 'discover', label: 'Discover', icon: DiscoverIcon },
-        { view: 'chess', label: 'Chess', icon: ChessIcon },
+        { view: 'discover', label: 'Creators', icon: UsersIcon },
         { view: 'messages', label: 'Messages', icon: MessageIcon },
         { view: 'profile', label: 'Profile', icon: ProfileIcon },
     ];

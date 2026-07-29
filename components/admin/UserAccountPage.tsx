@@ -25,9 +25,12 @@ type FullUserProfile = Tables<'profiles'> & {
 };
 
 const SectionCard = ({ title, children, actions, className }: { title: string, children: React.ReactNode, actions?: React.ReactNode, className?: string }) => (
-    <div className={`bg-[var(--theme-card-bg)] p-5 rounded-xl shadow-lg border border-[var(--theme-secondary)] ${className}`}>
-        <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-bold text-[var(--theme-text)]">{title}</h3>
+    <div className={`bg-white p-4 border border-slate-200 font-sans text-slate-900 shadow-sm ${className}`}>
+        <div className="flex justify-between items-center mb-3 pb-2 border-b border-slate-200">
+            <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider font-mono flex items-center gap-1.5">
+                <span className="w-2 h-2 bg-yellow-400 border border-slate-900"></span>
+                <span>{title}</span>
+            </h3>
             {actions && <div>{actions}</div>}
         </div>
         <div>{children}</div>

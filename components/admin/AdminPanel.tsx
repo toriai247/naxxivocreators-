@@ -3,8 +3,8 @@ import type { Session } from '@supabase/auth-js';
 import AdminDashboard from './AdminDashboard';
 import UserManagementPage from './UserManagementPage';
 import PaymentQueuePage from './PaymentQueuePage';
-import AdminStoreItemsPage from './AdminStoreItemsPage'; // Manages store_items (Bazaar)
-import ProductsManagementPage from './StoreManagementPage'; // Manages products (TopUp)
+import AdminStoreItemsPage from './AdminStoreItemsPage';
+import ProductsManagementPage from './StoreManagementPage';
 import AppSettingsPage from './AppSettingsPage';
 import AdminTasksPage from './AdminTasksPage';
 import AdminGiftCodesPage from './AdminGiftCodesPage';
@@ -17,7 +17,6 @@ import {
     ToolsIcon, ProfileIcon, CreditCardIcon, StoreIcon, SettingsIcon, 
     LogoutIcon, ClipboardListIcon, GiftIcon, PaintBrushIcon, CheckCircleIcon, TicketIcon, CoinIcon, UploadIcon
 } from '../common/AppIcons';
-import { motion, AnimatePresence } from 'framer-motion';
 
 interface AdminPanelProps {
     session: Session;
@@ -29,21 +28,20 @@ type AdminView = 'dashboard' | 'users' | 'payments' | 'products' | 'store_items'
 const AdminPanel: React.FC<AdminPanelProps> = ({ session, onExitAdminView }) => {
     const [view, setView] = useState<AdminView>('dashboard');
 
-    // FIX: The type for the icon property was too specific (JSX.Element), causing a namespace conflict. Changed to React.ReactNode for better compatibility.
-    const navItems: { id: AdminView; label: string; icon: React.ReactNode }[] = [
-        { id: 'dashboard', label: 'Dashboard', icon: <ToolsIcon className="w-5 h-5"/> },
-        { id: 'storage_setup', label: 'Storage & SQL Fix', icon: <UploadIcon className="w-5 h-5"/> },
-        { id: 'users', label: 'Users', icon: <ProfileIcon className="w-5 h-5"/> },
-        { id: 'preset_avatars', label: 'Preset Avatars', icon: <ProfileIcon className="w-5 h-5"/> },
-        { id: 'payments', label: 'Payments', icon: <CreditCardIcon className="w-5 h-5"/> },
-        { id: 'cover_approvals', label: 'Cover Approvals', icon: <CheckCircleIcon className="w-5 h-5"/> },
-        { id: 'products', label: 'Top-Up Products', icon: <PaintBrushIcon className="w-5 h-5"/> },
-        { id: 'store_items', label: 'Bazaar Items', icon: <StoreIcon className="w-5 h-5"/> },
-        { id: 'sell_settings', label: 'Sell Settings', icon: <CoinIcon className="w-5 h-5"/> },
-        { id: 'luck_royale', label: 'Luck Royale', icon: <TicketIcon className="w-5 h-5"/> },
-        { id: 'tasks', label: 'Tasks', icon: <ClipboardListIcon className="w-5 h-5"/> },
-        { id: 'gift_codes', label: 'Gift Codes', icon: <GiftIcon className="w-5 h-5"/> },
-        { id: 'settings', label: 'App Settings', icon: <SettingsIcon className="w-5 h-5"/> },
+    const navItems: { id: AdminView; label: string; icon: React.ReactNode; tag?: string }[] = [
+        { id: 'dashboard', label: 'Dashboard', icon: <ToolsIcon className="w-4 h-4"/>, tag: 'SYS' },
+        { id: 'storage_setup', label: 'Storage & SQL Fix', icon: <UploadIcon className="w-4 h-4"/>, tag: 'SQL' },
+        { id: 'users', label: 'User Manager', icon: <ProfileIcon className="w-4 h-4"/>, tag: 'USERS' },
+        { id: 'preset_avatars', label: 'Preset Avatars', icon: <ProfileIcon className="w-4 h-4"/>, tag: 'IMG' },
+        { id: 'payments', label: 'Payment Queue', icon: <CreditCardIcon className="w-4 h-4"/>, tag: 'TRX' },
+        { id: 'cover_approvals', label: 'Cover Approvals', icon: <CheckCircleIcon className="w-4 h-4"/>, tag: 'CVR' },
+        { id: 'products', label: 'Top-Up Products', icon: <PaintBrushIcon className="w-4 h-4"/>, tag: 'TOP' },
+        { id: 'store_items', label: 'Bazaar Items', icon: <StoreIcon className="w-4 h-4"/>, tag: 'SHOP' },
+        { id: 'sell_settings', label: 'Sell Settings', icon: <CoinIcon className="w-4 h-4"/>, tag: 'RATES' },
+        { id: 'luck_royale', label: 'Luck Royale', icon: <TicketIcon className="w-4 h-4"/>, tag: 'SPIN' },
+        { id: 'tasks', label: 'Task Engine', icon: <ClipboardListIcon className="w-4 h-4"/>, tag: 'TASKS' },
+        { id: 'gift_codes', label: 'Gift Codes', icon: <GiftIcon className="w-4 h-4"/>, tag: 'GIFT' },
+        { id: 'settings', label: 'App Config', icon: <SettingsIcon className="w-4 h-4"/>, tag: 'CFG' },
     ];
 
     const pages: Record<AdminView, React.ReactNode> = {
@@ -65,60 +63,91 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ session, onExitAdminView }) => 
     const currentNavItem = navItems.find(item => item.id === view);
 
     return (
-        <div className="min-h-screen flex bg-[var(--theme-bg)] font-sans text-[var(--theme-text)]">
-            {/* Sidebar */}
-            <aside className="w-64 bg-white shadow-md flex flex-col flex-shrink-0 border-r border-[var(--theme-secondary)]">
-                <div className="p-5 text-2xl font-bold font-logo text-center border-b border-[var(--theme-secondary)] text-[var(--theme-text)]">
-                    Naxxivo
-                    <span className="block text-xs font-sans font-semibold text-gray-400 tracking-wider">ADMIN</span>
+        <div className="min-h-screen flex bg-slate-100 font-sans text-slate-900 select-none">
+            {/* Binance Light + Yellow Styled Sidebar */}
+            <aside className="w-64 bg-white border-r border-slate-200 flex flex-col flex-shrink-0 shadow-sm">
+                <div className="p-4 border-b border-slate-900 bg-yellow-400 text-slate-950 flex items-center justify-between">
+                    <div>
+                        <div className="text-base font-black tracking-wider text-slate-950 flex items-center gap-2">
+                            <span className="inline-block w-3 h-3 bg-slate-950 rounded-none"></span>
+                            NAXXIVO ADMIN
+                        </div>
+                        <div className="text-[10px] text-slate-800 font-mono font-bold tracking-tight mt-0.5">
+                            BINANCE LIGHT PANEL • v3.0
+                        </div>
+                    </div>
                 </div>
-                <nav className="flex-1 px-4 py-4 space-y-2">
-                    {navItems.map(item => (
-                        <button
-                            key={item.id}
-                            onClick={() => setView(item.id)}
-                            className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-sm font-medium ${
-                                view === item.id 
-                                ? 'bg-[var(--theme-primary)] text-[var(--theme-primary-text)] shadow-lg shadow-[var(--theme-primary)]/30' 
-                                : 'text-[var(--theme-text-secondary)] hover:bg-[var(--theme-secondary-hover)]'
-                            }`}
-                        >
-                            {item.icon}
-                            <span>{item.label}</span>
-                        </button>
-                    ))}
+
+                {/* Sidebar Nav Buttons */}
+                <nav className="flex-1 p-2.5 space-y-1.5 overflow-y-auto no-scrollbar">
+                    {navItems.map(item => {
+                        const active = view === item.id;
+                        return (
+                            <button
+                                key={item.id}
+                                onClick={() => setView(item.id)}
+                                className={`w-full flex items-center justify-between px-3 py-2.5 text-xs font-bold border transition-none text-left rounded-none ${
+                                    active
+                                        ? 'bg-yellow-400 text-slate-950 border-slate-900 shadow-sm font-black'
+                                        : 'bg-white hover:bg-yellow-50 text-slate-700 border-slate-200/90 hover:border-yellow-300'
+                                }`}
+                            >
+                                <div className="flex items-center space-x-2.5 min-w-0">
+                                    <span className={active ? 'text-slate-950' : 'text-slate-500'}>{item.icon}</span>
+                                    <span className="truncate">{item.label}</span>
+                                </div>
+                                {item.tag && (
+                                    <span className={`text-[9px] px-1.5 py-0.5 border font-mono ${
+                                        active 
+                                            ? 'bg-slate-950 text-yellow-400 border-slate-900 font-bold' 
+                                            : 'bg-slate-100 text-slate-500 border-slate-200'
+                                    }`}>
+                                        {item.tag}
+                                    </span>
+                                )}
+                            </button>
+                        );
+                    })}
                 </nav>
-                <div className="p-4 border-t border-[var(--theme-secondary)]">
-                    <button onClick={onExitAdminView} className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-red-500 hover:bg-red-500/10 transition-colors text-sm font-medium">
-                        <LogoutIcon className="w-5 h-5" />
-                        <span>Return to App</span>
+
+                {/* Exit Button */}
+                <div className="p-3 border-t border-slate-200 bg-slate-50">
+                    <button 
+                        onClick={onExitAdminView} 
+                        className="w-full flex items-center justify-center space-x-2 px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white border border-rose-700 text-xs font-bold transition-none"
+                    >
+                        <LogoutIcon className="w-4 h-4" />
+                        <span>RETURN TO APP</span>
                     </button>
                 </div>
             </aside>
 
-            {/* Main Content */}
-            <main className="flex-1 flex flex-col overflow-hidden">
-                 <header className="bg-white/80 backdrop-blur-sm shadow-sm p-5 border-b border-[var(--theme-secondary)] flex items-center space-x-4">
-                    {currentNavItem && <div className="text-[var(--theme-primary)]">{currentNavItem.icon}</div>}
-                    <h1 className="text-xl font-bold text-[var(--theme-text)] capitalize">
-                        {currentNavItem?.label || view.replace(/_/g, ' ')}
-                    </h1>
+            {/* Main Area */}
+            <main className="flex-1 flex flex-col min-w-0 bg-slate-100 overflow-hidden">
+                <header className="h-12 bg-white border-b border-slate-200 px-5 flex items-center justify-between shrink-0 shadow-sm">
+                    <div className="flex items-center space-x-2 text-xs font-bold">
+                        <span className="text-slate-400 font-mono">ADMIN</span>
+                        <span className="text-slate-300">/</span>
+                        <span className="text-slate-900 font-extrabold flex items-center gap-1.5">
+                            <span className="p-1 bg-yellow-400 text-slate-950 border border-slate-900 text-[10px]">
+                                {currentNavItem?.icon}
+                            </span>
+                            <span>{currentNavItem?.label.toUpperCase()}</span>
+                        </span>
+                    </div>
+
+                    <div className="flex items-center space-x-3 text-xs">
+                        <div className="hidden sm:flex items-center space-x-2 text-[10px] text-slate-700 bg-yellow-50 px-2.5 py-1 border border-yellow-300 font-mono">
+                            <span className="w-2 h-2 rounded-none bg-yellow-500 animate-pulse"></span>
+                            <span className="font-bold text-slate-900">BINANCE LIGHT THEME ACTIVE</span>
+                        </div>
+                    </div>
                 </header>
-                <div className="flex-1 p-6 overflow-y-auto">
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={view}
-                            {...{
-                                initial: { opacity: 0, y: 20 },
-                                animate: { opacity: 1, y: 0 },
-                                exit: { opacity: 0, y: -20 },
-                                transition: { duration: 0.2 },
-                            } as any}
-                             className="bg-white p-6 rounded-lg shadow-sm"
-                        >
-                            {pages[view]}
-                        </motion.div>
-                    </AnimatePresence>
+
+                <div className="flex-1 p-4 sm:p-5 overflow-y-auto">
+                    <div className="bg-white border border-slate-200 p-4 sm:p-5 shadow-sm min-h-full">
+                        {pages[view]}
+                    </div>
                 </div>
             </main>
         </div>

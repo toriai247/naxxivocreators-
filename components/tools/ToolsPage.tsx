@@ -13,7 +13,6 @@ interface ToolsPageProps {
     onNavigateToEarnXp: () => void;
     onNavigateToEvents: () => void;
     onNavigateToSellPage: () => void;
-    onNavigateToReversi: () => void;
     onNavigateToImageEditor?: () => void;
     onNavigateToImageCompressor?: () => void;
 }
@@ -48,7 +47,7 @@ const ToolCard: React.FC<{ title: string, description: string, icon: React.React
 );
 
 
-const ToolsPage: React.FC<ToolsPageProps> = ({ onBack, onNavigateToAnime, onNavigateToTopUp, onNavigateToMusicLibrary, onNavigateToStore, onNavigateToCollection, onNavigateToInfo, onNavigateToEarnXp, onNavigateToEvents, onNavigateToSellPage, onNavigateToReversi, onNavigateToImageEditor, onNavigateToImageCompressor }) => {
+const ToolsPage: React.FC<ToolsPageProps> = ({ onBack, onNavigateToAnime, onNavigateToTopUp, onNavigateToMusicLibrary, onNavigateToStore, onNavigateToCollection, onNavigateToInfo, onNavigateToEarnXp, onNavigateToEvents, onNavigateToSellPage, onNavigateToImageEditor, onNavigateToImageCompressor }) => {
     
     const allTools = [
         {
@@ -111,13 +110,6 @@ const ToolsPage: React.FC<ToolsPageProps> = ({ onBack, onNavigateToAnime, onNavi
             description: "Customize your profile.",
             icon: '🎵',
             onClick: onNavigateToMusicLibrary,
-            comingSoon: false,
-        },
-        {
-            title: "Reversi Game",
-            description: "Play a classic board game.",
-            icon: <PuzzleIcon />,
-            onClick: onNavigateToReversi,
             comingSoon: false,
         },
         {

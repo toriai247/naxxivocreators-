@@ -66,47 +66,75 @@ const AdminTasksPage: React.FC = () => {
 
 
     return (
-        <div className="bg-[var(--theme-card-bg)] p-6 rounded-xl shadow-lg border border-[var(--theme-secondary)]">
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold text-[var(--theme-text)]">Task Management</h2>
+        <div className="space-y-3 font-sans">
+            {/* Control Bar */}
+            <div className="bg-yellow-400 border border-slate-900 p-3.5 text-slate-950 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shadow-sm">
+                <div>
+                    <h2 className="text-xs font-black text-slate-950 uppercase tracking-wider font-mono">TASK ENGINE & XP REWARDS</h2>
+                    <p className="text-[10px] text-slate-800 font-mono font-bold">Configure daily, weekly, and special tasks for user XP reward distribution</p>
+                </div>
                 <button
                     onClick={handleCreateNew}
-                    className="bg-[var(--theme-primary)] hover:bg-[var(--theme-primary-hover)] text-white font-semibold px-4 py-2 rounded-lg transition-colors shadow-sm"
+                    className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-yellow-400 border border-slate-900 text-xs font-black transition-none font-mono"
                 >
-                    Create New Task
+                    + CREATE NEW TASK
                 </button>
             </div>
+
             {loading ? (
-                <div className="flex justify-center items-center py-10"><LoadingSpinner /></div>
+                <div className="flex justify-center items-center py-12 text-slate-500 text-xs font-mono"><LoadingSpinner /></div>
+            ) : tasks.length === 0 ? (
+                <div className="bg-slate-50 border border-slate-200 p-8 text-center text-xs text-slate-500 font-mono">
+                    NO TASKS CONFIGURED IN DATABASE
+                </div>
             ) : (
-                <div className="overflow-x-auto">
-                    <table className="admin-table">
-                        <thead className="admin-thead">
-                            <tr>
-                                <th className="admin-th">Title</th>
-                                <th className="admin-th">Type</th>
-                                <th className="admin-th">Reward</th>
-                                <th className="admin-th">Goal</th>
-                                <th className="admin-th">Interval</th>
-                                <th className="admin-th">Status</th>
-                                <th className="admin-th text-right">Actions</th>
+                <div className="border border-slate-200 bg-white overflow-x-auto shadow-sm">
+                    <table className="w-full text-left text-xs border-collapse font-sans">
+                        <thead>
+                            <tr className="bg-slate-100 text-slate-700 border-b border-slate-200 font-black uppercase text-[10px] tracking-wider font-mono">
+                                <th className="p-3 border-r border-slate-200">Task Title</th>
+                                <th className="p-3 border-r border-slate-200">Type Key</th>
+                                <th className="p-3 border-r border-slate-200">XP Reward</th>
+                                <th className="p-3 border-r border-slate-200">Goal Count</th>
+                                <th className="p-3 border-r border-slate-200">Reset Interval</th>
+                                <th className="p-3 border-r border-slate-200">Status</th>
+                                <th className="p-3 text-right">Actions</th>
                             </tr>
                         </thead>
-                         <tbody className="admin-tbody">
-                             {tasks.map(task => (
-                                <tr key={task.id} className="admin-tr">
-                                    <td className="admin-td font-medium text-[var(--theme-text)]">{task.title}</td>
-                                    <td className="admin-td text-[var(--theme-text-secondary)] font-mono">{task.type}</td>
-                                    <td className="admin-td text-[var(--theme-text-secondary)]">{task.xp_reward} XP</td>
-                                    <td className="admin-td text-[var(--theme-text-secondary)]">{task.required_count}</td>
-                                    <td className="admin-td text-[var(--theme-text-secondary)] capitalize">{task.reset_interval.toLowerCase()}</td>
-                                    <td className="admin-td">
-                                        <span className={`status-badge ${task.is_active ? 'status-badge-active' : 'status-badge-inactive'}`}>
-                                            {task.is_active ? 'Active' : 'Inactive'}
+                        <tbody className="divide-y divide-slate-200">
+                            {tasks.map(task => (
+                                <tr key={task.id} className="hover:bg-yellow-50/60 transition-none">
+                                    <td className="p-3 border-r border-slate-200 font-bold text-slate-900">
+                                        {task.title}
+                                    </td>
+                                    <td className="p-3 border-r border-slate-200 font-mono text-[10px] text-yellow-700 font-bold">
+                                        {task.type}
+                                    </td>
+                                    <td className="p-3 border-r border-slate-200 font-black text-emerald-600 font-mono">
+                                        +{task.xp_reward} XP
+                                    </td>
+                                    <td className="p-3 border-r border-slate-200 text-slate-700 font-mono">
+                                        {task.required_count}
+                                    </td>
+                                    <td className="p-3 border-r border-slate-200 text-[10px] uppercase text-slate-500 font-mono">
+                                        {task.reset_interval}
+                                    </td>
+                                    <td className="p-3 border-r border-slate-200 font-mono">
+                                        <span className={`px-2 py-0.5 border text-[10px] font-bold uppercase ${
+                                            task.is_active
+                                                ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                                                : 'bg-slate-100 text-slate-500 border-slate-200'
+                                        }`}>
+                                            {task.is_active ? 'ACTIVE' : 'INACTIVE'}
                                         </span>
                                     </td>
-                                    <td className="admin-td text-right">
-                                        <button onClick={() => handleEdit(task)} className="btn-edit">Edit</button>
+                                    <td className="p-3 text-right">
+                                        <button 
+                                            onClick={() => handleEdit(task)} 
+                                            className="px-2.5 py-1 bg-yellow-400 hover:bg-yellow-300 text-slate-950 border border-slate-900 text-[10px] font-black active:bg-yellow-500 transition-none font-mono"
+                                        >
+                                            [EDIT TASK]
+                                        </button>
                                     </td>
                                 </tr>
                             ))}
@@ -114,6 +142,7 @@ const AdminTasksPage: React.FC = () => {
                     </table>
                 </div>
             )}
+
             {isModalOpen && (
                 <TaskFormModal
                     isOpen={isModalOpen}

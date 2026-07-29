@@ -3,8 +3,27 @@ import type { Session } from '@supabase/auth-js';
 import { supabase } from '../../integrations/supabase/client';
 import LoadingSpinner from '../common/LoadingSpinner';
 import type { Tables, Json } from '../../integrations/supabase/types';
-import { TrophyIcon, GoldCoinIcon, DiamondIcon, SilverCoinIcon, GoldMedalIcon, SilverMedalIcon, BronzeMedalIcon, SearchIcon } from '../common/AppIcons';
-import { formatXp } from '../../utils/helpers';
+import { 
+    SearchIcon, 
+    WebsiteIcon, 
+    YouTubeIcon, 
+    FacebookIcon, 
+    InstagramIcon, 
+    TwitterIcon, 
+    TikTokIcon, 
+    DiscordIcon, 
+    TelegramIcon, 
+    WhatsAppIcon, 
+    LinkedInIcon, 
+    GitHubIcon, 
+    SpotifyIcon, 
+    TwitchIcon,
+    QrCodeIcon,
+    LinkHubIcon,
+    GoldMedalIcon,
+    SilverMedalIcon,
+    BronzeMedalIcon
+} from '../common/AppIcons';
 import { motion, AnimatePresence } from 'framer-motion';
 import Avatar from '../common/Avatar';
 import ConfettiExplosion from 'react-confetti-explosion';
@@ -14,248 +33,184 @@ interface UsersPageProps {
     onViewProfile: (userId: string) => void;
 }
 
-type Profile = Pick<Tables<'profiles'>, 'id' | 'name' | 'username' | 'photo_url' | 'xp_balance' | 'gold_coins' | 'silver_coins' | 'diamond_coins'> & {
-    active_cover: { preview_url: string | null, asset_details: Json } | null;
-};
-type LeaderboardCategory = 'xp' | 'gold' | 'silver' | 'diamond';
-type TierFilter = 'all' | 'top10' | 'top50';
-
-const getCategoryData = (user: Profile, category: LeaderboardCategory) => {
-    switch(category) {
-        case 'gold': return { value: user.gold_coins ?? 0, icon: <GoldCoinIcon className="w-4 h-4 text-yellow-500 inline"/>, label: 'Gold Coins', colorClass: 'text-yellow-500', bgGlow: 'from-amber-500/20 to-yellow-500/5', borderGlow: 'border-yellow-500/30' };
-        case 'silver': return { value: user.silver_coins ?? 0, icon: <SilverCoinIcon className="w-4 h-4 text-slate-300 inline"/>, label: 'Silver Coins', colorClass: 'text-slate-300', bgGlow: 'from-slate-400/20 to-gray-500/5', borderGlow: 'border-slate-400/30' };
-        case 'diamond': return { value: user.diamond_coins ?? 0, icon: <DiamondIcon className="w-4 h-4 text-cyan-400 inline"/>, label: 'Diamonds', colorClass: 'text-cyan-400', bgGlow: 'from-cyan-500/20 to-blue-500/5', borderGlow: 'border-cyan-500/30' };
-        case 'xp':
-        default: return { value: user.xp_balance, icon: <TrophyIcon className="w-4 h-4 text-violet-400 inline"/>, label: 'Arena XP', colorClass: 'text-violet-400', bgGlow: 'from-violet-600/20 to-purple-600/5', borderGlow: 'border-violet-500/30' };
-    }
+type CreatorProfile = Tables<'profiles'> & {
+    active_cover?: { preview_url: string | null; asset_details: Json } | null;
 };
 
-const getTierBadge = (rank: number) => {
-    if (rank === 1) return { label: '👑 KING OF ARENA', bg: 'bg-gradient-to-r from-amber-500 to-yellow-400 text-black font-extrabold shadow-[0_0_12px_rgba(245,158,11,0.6)]' };
-    if (rank === 2) return { label: '⚔️ GRANDMASTER', bg: 'bg-gradient-to-r from-slate-300 to-slate-100 text-slate-900 font-bold' };
-    if (rank === 3) return { label: '🛡️ ELITE WARRIOR', bg: 'bg-gradient-to-r from-amber-700 to-orange-600 text-white font-bold' };
-    if (rank <= 10) return { label: '🔥 MASTER', bg: 'bg-purple-500/20 text-purple-300 border border-purple-500/30' };
-    if (rank <= 25) return { label: '💎 DIAMOND', bg: 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' };
-    if (rank <= 50) return { label: '⚡ PLATINUM', bg: 'bg-blue-500/20 text-blue-300 border border-blue-500/30' };
-    return { label: '🎮 CHALLENGER', bg: 'bg-gray-500/20 text-gray-400 border border-gray-500/30' };
+const CATEGORY_TAGS = [
+    { id: 'all', label: 'All Creators', icon: '✨' },
+    { id: 'top', label: '🔥 Top Creators', icon: '👑' },
+    { id: 'gaming', label: '🎮 Gaming', icon: '🎮' },
+    { id: 'editing', label: '🎨 Editing & AMV', icon: '🎨' },
+    { id: 'music', label: '🎵 Music & Audio', icon: '🎵' },
+    { id: 'vlogs', label: '🎬 Vlogs & Video', icon: '🎬' },
+    { id: 'tech', label: '💻 Tech & Dev', icon: '💻' },
+    { id: 'anime', label: '🍿 Anime & Series', icon: '🍿' },
+];
+
+const ensureProtocol = (url: string) => {
+    if (!url) return '';
+    return url.startsWith('http://') || url.startsWith('https://') ? url : `https://${url}`;
 };
 
-const PodiumUser: React.FC<{
-    user: Profile;
-    rank: number;
-    category: LeaderboardCategory;
+export const CreatorCard: React.FC<{
+    creator: CreatorProfile;
+    rank?: number;
     onViewProfile: (userId: string) => void;
-    onCelebrate: (user: Profile, rank: number) => void;
-}> = ({ user, rank, category, onViewProfile, onCelebrate }) => {
-    const isFirst = rank === 1;
-    const categoryData = getCategoryData(user, category);
-    
-    let medalIcon;
-    let rankTitle;
-    switch (rank) {
-        case 1:
-            medalIcon = <GoldMedalIcon className="w-12 h-12 absolute -bottom-4 left-1/2 -translate-x-1/2 z-20 drop-shadow-[0_4px_8px_rgba(234,179,8,0.6)]" />;
-            rankTitle = "CHAMPION";
-            break;
-        case 2:
-            medalIcon = <SilverMedalIcon className="w-10 h-10 absolute -bottom-3 left-1/2 -translate-x-1/2 z-20 drop-shadow-[0_4px_6px_rgba(148,163,184,0.5)]" />;
-            rankTitle = "RUNNER UP";
-            break;
-        case 3:
-            medalIcon = <BronzeMedalIcon className="w-10 h-10 absolute -bottom-3 left-1/2 -translate-x-1/2 z-20 drop-shadow-[0_4px_6px_rgba(217,119,6,0.5)]" />;
-            rankTitle = "THIRD PLACE";
-            break;
-        default:
-            medalIcon = null;
-            rankTitle = "";
-    }
-    
+}> = ({ creator, rank, onViewProfile }) => {
+    // Collect non-empty social links
+    const socialLinks = [
+        { key: 'youtube', url: creator.youtube_url, title: 'YouTube', icon: <YouTubeIcon className="w-4 h-4"/>, color: 'hover:bg-red-600 bg-red-500/20 text-red-400 border-red-500/30' },
+        { key: 'facebook', url: creator.facebook_url, title: 'Facebook', icon: <FacebookIcon className="w-4 h-4"/>, color: 'hover:bg-blue-600 bg-blue-500/20 text-blue-400 border-blue-500/30' },
+        { key: 'instagram', url: creator.instagram_url, title: 'Instagram', icon: <InstagramIcon className="w-4 h-4"/>, color: 'hover:bg-pink-600 bg-pink-500/20 text-pink-400 border-pink-500/30' },
+        { key: 'tiktok', url: creator.tiktok_url, title: 'TikTok', icon: <TikTokIcon className="w-4 h-4"/>, color: 'hover:bg-neutral-800 bg-neutral-800/60 text-white border-neutral-700' },
+        { key: 'twitter', url: creator.twitter_url, title: 'Twitter / X', icon: <TwitterIcon className="w-4 h-4"/>, color: 'hover:bg-neutral-800 bg-neutral-800/60 text-white border-neutral-700' },
+        { key: 'website', url: creator.website_url, title: 'Website', icon: <WebsiteIcon className="w-4 h-4"/>, color: 'hover:bg-indigo-600 bg-indigo-500/20 text-indigo-400 border-indigo-500/30' },
+        { key: 'discord', url: creator.discord_url, title: 'Discord', icon: <DiscordIcon className="w-4 h-4"/>, color: 'hover:bg-indigo-600 bg-indigo-500/20 text-indigo-300 border-indigo-500/30' },
+        { key: 'spotify', url: creator.spotify_url, title: 'Spotify', icon: <SpotifyIcon className="w-4 h-4"/>, color: 'hover:bg-green-600 bg-green-500/20 text-green-400 border-green-500/30' },
+        { key: 'github', url: creator.github_url, title: 'GitHub', icon: <GitHubIcon className="w-4 h-4"/>, color: 'hover:bg-neutral-800 bg-neutral-800/60 text-white border-neutral-700' },
+        { key: 'twitch', url: creator.twitch_url, title: 'Twitch', icon: <TwitchIcon className="w-4 h-4"/>, color: 'hover:bg-purple-600 bg-purple-500/20 text-purple-400 border-purple-500/30' },
+    ].filter(s => !!s.url);
+
+    // Extract keyword tags
+    const keywords = creator.content_keywords 
+        ? creator.content_keywords.split(',').map(k => k.trim()).filter(Boolean)
+        : [];
+
     return (
         <motion.div
-            onClick={() => {
-                if (isFirst) onCelebrate(user, rank);
-                onViewProfile(user.id);
-            }}
-            className={`flex flex-col items-center text-center cursor-pointer transition-all duration-300 hover:scale-105 ${isFirst ? 'w-2/5 z-10 -mt-6' : 'w-1/3'}`}
-            initial={{ opacity: 0, y: 40 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ type: 'spring', stiffness: 180, damping: 16, delay: rank * 0.1 }}
+            whileHover={{ y: -4 }}
+            className="group relative bg-[var(--theme-card-bg)] rounded-3xl border border-gray-200/20 dark:border-gray-800/80 shadow-xl overflow-hidden transition-all duration-300 hover:border-indigo-500/50 hover:shadow-indigo-500/10 flex flex-col justify-between"
         >
-            <div className="relative mb-4">
-                {isFirst && (
-                    <motion.div 
-                        animate={{ y: [0, -6, 0], rotate: [0, -5, 5, 0] }}
-                        transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-                        className="absolute -top-7 left-1/2 -translate-x-1/2 z-30 text-2xl filter drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]"
-                    >
-                        👑
-                    </motion.div>
+            {/* Header / Cover Banner Backdrop */}
+            <div className="h-28 sm:h-32 bg-gradient-to-r from-indigo-900 via-purple-900 to-slate-900 relative overflow-hidden">
+                {creator.cover_url ? (
+                    <img src={creator.cover_url} alt="Cover" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                ) : (
+                    <div className="w-full h-full opacity-40 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-600 via-purple-600 to-pink-600" />
                 )}
-                
-                <div className={`relative rounded-full p-1.5 ${
-                    rank === 1 ? 'bg-gradient-to-tr from-amber-300 via-yellow-500 to-amber-200 shadow-[0_0_25px_rgba(245,158,11,0.6)]' :
-                    rank === 2 ? 'bg-gradient-to-tr from-slate-300 via-slate-400 to-slate-200 shadow-[0_0_15px_rgba(148,163,184,0.4)]' :
-                    'bg-gradient-to-tr from-amber-700 via-orange-500 to-amber-600 shadow-[0_0_15px_rgba(217,119,6,0.4)]'
-                }`}>
+                <div className="absolute inset-0 bg-gradient-to-t from-[var(--theme-card-bg)] via-black/30 to-transparent" />
+
+                {/* Optional Rank Badge */}
+                {rank && rank <= 3 && (
+                    <div className="absolute top-3 left-3 z-10 px-3 py-1 rounded-full bg-black/70 backdrop-blur-md border border-amber-400/50 flex items-center gap-1.5 shadow-lg">
+                        <span className="text-xs font-black text-amber-400">
+                            {rank === 1 ? '👑 #1 CREATOR' : rank === 2 ? '⚔️ #2 TOP' : '🛡️ #3 TOP'}
+                        </span>
+                    </div>
+                )}
+            </div>
+
+            {/* Profile Info Container */}
+            <div className="px-5 pb-5 relative pt-12 flex-1 flex flex-col">
+                {/* Floating Avatar */}
+                <div 
+                    onClick={() => onViewProfile(creator.id)}
+                    className="absolute -top-12 left-5 w-20 h-20 rounded-2xl p-1 bg-[var(--theme-card-bg)] shadow-xl cursor-pointer border-2 border-indigo-500/40 group-hover:border-indigo-400 transition-colors"
+                >
                     <Avatar
-                        photoUrl={user.photo_url}
-                        name={user.username}
-                        activeCover={user.active_cover}
-                        size={isFirst ? "xl" : "lg"}
-                        containerClassName="rounded-full overflow-hidden"
-                        imageClassName="border-4 border-[var(--theme-card-bg)]"
+                        photoUrl={creator.photo_url}
+                        name={creator.username}
+                        activeCover={creator.active_cover}
+                        size="lg"
+                        containerClassName="w-full h-full rounded-xl overflow-hidden"
                     />
                 </div>
-                {medalIcon}
-            </div>
 
-            <div className={`w-full px-2 py-2 rounded-xl border backdrop-blur-md ${
-                rank === 1 ? 'bg-gradient-to-b from-amber-500/15 to-transparent border-amber-500/40 shadow-lg' :
-                rank === 2 ? 'bg-gradient-to-b from-slate-400/10 to-transparent border-slate-400/30' :
-                'bg-gradient-to-b from-amber-700/10 to-transparent border-amber-700/30'
-            }`}>
-                <span className={`text-[10px] font-extrabold tracking-wider uppercase px-2 py-0.5 rounded-full ${
-                    rank === 1 ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/40' :
-                    rank === 2 ? 'bg-slate-400/20 text-slate-300 border border-slate-400/40' :
-                    'bg-orange-500/20 text-orange-400 border border-orange-500/40'
-                }`}>
-                    {rankTitle}
-                </span>
-                <p className="font-bold text-sm text-[var(--theme-text)] mt-1 truncate max-w-[110px] mx-auto">
-                    {user.name || user.username}
-                </p>
-                <div className="mt-1 inline-flex items-center gap-1.5 bg-[var(--theme-card-bg)]/80 px-2.5 py-1 rounded-full border border-[var(--theme-secondary)] shadow-sm">
-                    {categoryData.icon}
-                    <span className={`text-xs font-black ${categoryData.colorClass}`}>
-                        {formatXp(categoryData.value)}
-                    </span>
+                {/* Top Right Quick Bio Action */}
+                <div className="absolute -top-5 right-5 flex items-center gap-2">
+                    <button
+                        onClick={() => onViewProfile(creator.id)}
+                        className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-extrabold text-[11px] shadow-lg shadow-indigo-500/20 flex items-center gap-1 transition-transform active:scale-95"
+                    >
+                        <span>Visit Profile</span>
+                        <span>→</span>
+                    </button>
                 </div>
-            </div>
-        </motion.div>
-    );
-};
 
-const ListUserRow: React.FC<{ 
-    user: Profile; 
-    rank: number; 
-    category: LeaderboardCategory; 
-    onViewProfile: (userId: string) => void;
-    isCurrentUser: boolean;
-}> = ({ user, rank, category, onViewProfile, isCurrentUser }) => {
-    const categoryData = getCategoryData(user, category);
-    const tier = getTierBadge(rank);
-    
-    return (
-        <motion.button
-            onClick={() => onViewProfile(user.id)}
-            className={`w-full flex items-center justify-between p-3 rounded-2xl transition-all duration-200 text-left border ${
-                isCurrentUser ? 
-                'bg-gradient-to-r from-yellow-500/15 via-amber-500/10 to-yellow-500/15 border-yellow-500/60 shadow-[0_0_15px_rgba(240,185,11,0.2)]' : 
-                'bg-[var(--theme-card-bg)] hover:bg-[var(--theme-card-bg-alt)] border-[var(--theme-secondary)] shadow-sm hover:shadow-md'
-            }`}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-        >
-            <div className="flex items-center gap-3 min-w-0">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-sm flex-shrink-0 ${
-                    rank <= 10 ? 'bg-gradient-to-br from-purple-500 to-indigo-600 text-white shadow-sm' : 
-                    isCurrentUser ? 'bg-yellow-500 text-black' : 'bg-[var(--theme-secondary)] text-[var(--theme-text-secondary)]'
-                }`}>
-                    #{rank}
+                {/* Name & Handle */}
+                <div className="mb-2">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                        <h3 
+                            onClick={() => onViewProfile(creator.id)}
+                            className="font-black text-base text-[var(--theme-text)] hover:text-indigo-400 transition-colors cursor-pointer"
+                        >
+                            {creator.name || creator.username}
+                        </h3>
+                        <span className="text-blue-500 text-sm font-bold" title="Verified Creator">✓</span>
+                    </div>
+                    <p className="text-xs font-bold text-indigo-400">
+                        @{creator.username}
+                    </p>
                 </div>
-                
-                <Avatar
-                    photoUrl={user.photo_url}
-                    name={user.username}
-                    activeCover={user.active_cover}
-                    size="md"
-                    containerClassName="flex-shrink-0"
-                />
-                
-                <div className="min-w-0 flex-grow">
-                    <div className="flex items-center gap-2">
-                        <p className={`truncate font-bold text-sm ${isCurrentUser ? 'text-yellow-500' : 'text-[var(--theme-text)]'}`}>
-                            {user.name || user.username}
-                        </p>
-                        {isCurrentUser && (
-                            <span className="text-[10px] font-black bg-yellow-500 text-black px-1.5 py-0.5 rounded-full uppercase tracking-wider">
-                                YOU
+
+                {/* Tagline / Bio */}
+                {creator.bio_tagline ? (
+                    <p className="text-xs text-[var(--theme-text-secondary)] line-clamp-2 italic mb-3 bg-[var(--theme-card-bg-alt)] px-3 py-1.5 rounded-xl border border-gray-500/10">
+                        "{creator.bio_tagline}"
+                    </p>
+                ) : creator.bio ? (
+                    <p className="text-xs text-[var(--theme-text-secondary)] line-clamp-2 mb-3 leading-relaxed">
+                        {creator.bio}
+                    </p>
+                ) : null}
+
+                {/* Content Keyword Tags */}
+                {keywords.length > 0 ? (
+                    <div className="flex flex-wrap gap-1.5 mb-4">
+                        {keywords.map((tag, idx) => (
+                            <span 
+                                key={idx}
+                                className="px-2 py-0.5 rounded-lg text-[10px] font-extrabold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 uppercase tracking-wider"
+                            >
+                                #{tag}
+                            </span>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="mb-3">
+                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                            #General Content Creator
+                        </span>
+                    </div>
+                )}
+
+                {/* Social Channels Direct Quick Links Bar */}
+                <div className="mt-auto pt-3 border-t border-gray-500/10 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 flex-wrap overflow-hidden max-w-[210px]">
+                        {socialLinks.length > 0 ? (
+                            socialLinks.slice(0, 5).map(social => (
+                                <a
+                                    key={social.key}
+                                    href={ensureProtocol(social.url!)}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    title={`Visit ${social.title}`}
+                                    className={`p-1.5 rounded-lg border transition-transform hover:scale-110 active:scale-95 ${social.color}`}
+                                    onClick={e => e.stopPropagation()}
+                                >
+                                    {social.icon}
+                                </a>
+                            ))
+                        ) : (
+                            <span className="text-[10px] text-gray-500 font-semibold">No direct channels linked</span>
+                        )}
+                        {socialLinks.length > 5 && (
+                            <span className="text-[10px] font-extrabold text-indigo-400 px-1 py-0.5">
+                                +{socialLinks.length - 5}
                             </span>
                         )}
                     </div>
-                    <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-xs text-[var(--theme-text-secondary)] truncate">
-                            @{user.username}
-                        </span>
-                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${tier.bg} hidden sm:inline-block`}>
-                            {tier.label}
-                        </span>
-                    </div>
-                </div>
-            </div>
 
-            <div className="flex items-center gap-2 flex-shrink-0 ml-2">
-                <div className="flex items-center gap-1.5 bg-[var(--theme-card-bg-alt)] px-3 py-1.5 rounded-xl border border-[var(--theme-secondary)]">
-                    {categoryData.icon}
-                    <span className={`text-sm font-black ${categoryData.colorClass}`}>
-                        {formatXp(categoryData.value)}
-                    </span>
-                </div>
-            </div>
-        </motion.button>
-    );
-};
-
-const MyRankBanner: React.FC<{
-    myRankInfo: { user: Profile; rank: number } | null; 
-    category: LeaderboardCategory; 
-    onViewProfile: (userId: string) => void;
-}> = ({ myRankInfo, category, onViewProfile }) => {
-    if (!myRankInfo) return null;
-    
-    const { user, rank } = myRankInfo;
-    const categoryData = getCategoryData(user, category);
-
-    return (
-        <motion.div 
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 220, damping: 24 }}
-            className="fixed bottom-20 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-lg z-40"
-        >
-            <div 
-                onClick={() => onViewProfile(user.id)}
-                className="flex items-center justify-between p-3.5 bg-gradient-to-r from-slate-900 via-purple-950 to-slate-900 text-white rounded-2xl border border-purple-500/50 shadow-[0_8px_30px_rgba(168,85,247,0.35)] backdrop-blur-lg cursor-pointer hover:border-yellow-500/60 transition-all duration-300"
-            >
-                <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-yellow-400 to-amber-600 flex items-center justify-center font-black text-black text-sm shadow-md flex-shrink-0">
-                        #{rank}
-                    </div>
-                    <Avatar photoUrl={user.photo_url} name={user.username} activeCover={user.active_cover} size="sm" />
-                    <div>
-                        <div className="flex items-center gap-2">
-                            <p className="font-extrabold text-sm text-yellow-400">Your Standing</p>
-                            <span className="text-[10px] bg-purple-500/30 text-purple-200 px-1.5 py-0.2 rounded border border-purple-500/40">
-                                TOP {(rank <= 10) ? '10' : (rank <= 50) ? '50' : 'ARENA'}
-                            </span>
-                        </div>
-                        <p className="text-xs text-slate-300 truncate font-medium">@{user.username}</p>
-                    </div>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1.5 bg-black/40 px-3 py-1.5 rounded-xl border border-white/10">
-                        {categoryData.icon}
-                        <span className="text-sm font-black text-white">
-                            {formatXp(categoryData.value)}
-                        </span>
-                    </div>
-                    <div className="w-8 h-8 rounded-full bg-purple-600/30 flex items-center justify-center text-purple-300 hover:bg-purple-600/50 transition-colors">
-                        ➔
-                    </div>
+                    <button
+                        onClick={() => onViewProfile(creator.id)}
+                        className="p-1.5 rounded-xl bg-[var(--theme-card-bg-alt)] border border-gray-500/20 text-gray-300 hover:text-white hover:border-indigo-500 text-xs font-extrabold flex items-center gap-1"
+                    >
+                        <LinkHubIcon className="w-3.5 h-3.5 text-indigo-400" />
+                        <span>Bio Hub</span>
+                    </button>
                 </div>
             </div>
         </motion.div>
@@ -263,104 +218,111 @@ const MyRankBanner: React.FC<{
 };
 
 const UsersPage: React.FC<UsersPageProps> = ({ session, onViewProfile }) => {
-    const [category, setCategory] = useState<LeaderboardCategory>('xp');
-    const [tierFilter, setTierFilter] = useState<TierFilter>('all');
+    const [selectedCategory, setSelectedCategory] = useState<string>('all');
     const [searchQuery, setSearchQuery] = useState('');
-    const [users, setUsers] = useState<Profile[]>([]);
+    const [creators, setCreators] = useState<CreatorProfile[]>([]);
     const [loading, setLoading] = useState(true);
     const [isExploding, setIsExploding] = useState(false);
-    const [celebrationToast, setCelebrationToast] = useState<string | null>(null);
+    const [toastMessage, setToastMessage] = useState<string | null>(null);
 
     useEffect(() => {
-        const fetchUsers = async () => {
+        const fetchCreators = async () => {
             setLoading(true);
-            let { data, error } = await supabase
-                .from('profiles')
-                .select('id, name, username, photo_url, xp_balance, gold_coins, silver_coins, diamond_coins, active_cover:active_cover_id(preview_url, asset_details)');
-            
-            if (error) {
-                console.warn("Retrying fetch without active_cover join:", error.message);
-                const fallback = await supabase
+            try {
+                let { data, error } = await supabase
                     .from('profiles')
-                    .select('id, name, username, photo_url, xp_balance, gold_coins, silver_coins, diamond_coins, active_cover_id');
-                data = fallback.data as any;
-                error = fallback.error;
-            }
+                    .select('*, active_cover:active_cover_id(preview_url, asset_details)');
+                
+                if (error) {
+                    console.warn("Fallback query without active_cover join:", error.message);
+                    const fallback = await supabase
+                        .from('profiles')
+                        .select('*');
+                    data = fallback.data as any;
+                    error = fallback.error;
+                }
 
-            if (error) {
-                console.warn("Retrying fetch basic profile columns:", error.message);
-                const basic = await supabase
-                    .from('profiles')
-                    .select('id, name, username, photo_url, xp_balance, gold_coins, silver_coins, diamond_coins');
-                data = basic.data as any;
-                error = basic.error;
+                if (error) {
+                    console.error("Failed to load creators:", error);
+                } else {
+                    setCreators((data as CreatorProfile[]) || []);
+                }
+            } catch (err) {
+                console.error("Error fetching creators:", err);
+            } finally {
+                setLoading(false);
             }
-
-            if (error) {
-                console.error("Failed to fetch users:", error);
-            } else {
-                setUsers((data as any) || []);
-            }
-            setLoading(false);
         };
 
-        fetchUsers();
+        fetchCreators();
     }, []);
-    
-    const sortedUsers = useMemo(() => {
-        return [...users].sort((a, b) => {
-            const valA = getCategoryData(a, category).value;
-            const valB = getCategoryData(b, category).value;
-            return valB - valA;
-        });
-    }, [users, category]);
-    
-    const filteredUsers = useMemo(() => {
-        let list = sortedUsers;
+
+    // Filter Creators
+    const filteredCreators = useMemo(() => {
+        let list = [...creators];
+
+        // Search query filter (Name, Username, Bio, Bio Tagline, Content Keywords)
         if (searchQuery.trim()) {
             const q = searchQuery.toLowerCase().trim();
-            list = list.filter(u => 
-                (u.name && u.name.toLowerCase().includes(q)) || 
-                (u.username && u.username.toLowerCase().includes(q))
+            list = list.filter(c => 
+                (c.name && c.name.toLowerCase().includes(q)) || 
+                (c.username && c.username.toLowerCase().includes(q)) ||
+                (c.bio && c.bio.toLowerCase().includes(q)) ||
+                (c.bio_tagline && c.bio_tagline.toLowerCase().includes(q)) ||
+                (c.content_keywords && c.content_keywords.toLowerCase().includes(q))
             );
         }
-        if (tierFilter === 'top10') {
-            list = list.filter((_, idx) => idx < 10);
-        } else if (tierFilter === 'top50') {
-            list = list.filter((_, idx) => idx < 50);
+
+        // Category Tag filter
+        if (selectedCategory !== 'all') {
+            if (selectedCategory === 'top') {
+                list = list.slice(0, 10);
+            } else {
+                list = list.filter(c => {
+                    const kw = (c.content_keywords || '').toLowerCase();
+                    const bio = (c.bio || '').toLowerCase();
+                    const tagline = (c.bio_tagline || '').toLowerCase();
+                    const fullText = `${kw} ${bio} ${tagline}`;
+
+                    switch (selectedCategory) {
+                        case 'gaming': return fullText.includes('game') || fullText.includes('gaming') || fullText.includes('play') || fullText.includes('stream');
+                        case 'editing': return fullText.includes('edit') || fullText.includes('amv') || fullText.includes('design') || fullText.includes('motion');
+                        case 'music': return fullText.includes('music') || fullText.includes('song') || fullText.includes('audio') || fullText.includes('beat');
+                        case 'vlogs': return fullText.includes('vlog') || fullText.includes('video') || fullText.includes('youtube') || fullText.includes('creator');
+                        case 'tech': return fullText.includes('tech') || fullText.includes('code') || fullText.includes('dev') || fullText.includes('software');
+                        case 'anime': return fullText.includes('anime') || fullText.includes('manga') || fullText.includes('series') || fullText.includes('amv');
+                        default: return true;
+                    }
+                });
+            }
         }
+
         return list;
-    }, [sortedUsers, searchQuery, tierFilter]);
+    }, [creators, searchQuery, selectedCategory]);
 
-    const topThree = useMemo(() => sortedUsers.slice(0, 3), [sortedUsers]);
-    const myRankInfo = useMemo(() => {
-        const myIndex = sortedUsers.findIndex(u => u.id === session.user.id);
-        if (myIndex === -1) return null;
-        return { user: sortedUsers[myIndex], rank: myIndex + 1 };
-    }, [sortedUsers, session.user.id]);
+    const topCreators = useMemo(() => creators.slice(0, 3), [creators]);
+    const myProfile = useMemo(() => creators.find(c => c.id === session.user.id), [creators, session.user.id]);
 
-    const categories: { id: LeaderboardCategory; label: string; icon: React.ReactNode }[] = [
-        { id: 'xp', label: 'Arena XP', icon: <TrophyIcon className="w-4 h-4 text-violet-400" /> },
-        { id: 'gold', label: 'Gold Coins', icon: <GoldCoinIcon className="w-4 h-4 text-yellow-500" /> },
-        { id: 'silver', label: 'Silver Coins', icon: <SilverCoinIcon className="w-4 h-4 text-slate-300" /> },
-        { id: 'diamond', label: 'Diamonds', icon: <DiamondIcon className="w-4 h-4 text-cyan-400" /> },
-    ];
-
-    const handleCelebrate = (user: Profile, rank: number) => {
+    const handleCelebrateTop = (creator: CreatorProfile) => {
         setIsExploding(true);
-        setCelebrationToast(`🎉 All Hail Champion ${user.name || user.username}! #1 in ${category.toUpperCase()}! 🎉`);
+        setToastMessage(`🎉 Celebrating Top Creator @${creator.username}! Check out their Bio Profile! 🎉`);
         setTimeout(() => setIsExploding(false), 3000);
-        setTimeout(() => setCelebrationToast(null), 4000);
+        setTimeout(() => setToastMessage(null), 4000);
     };
 
     if (loading) {
-        return <div className="flex justify-center pt-32"><LoadingSpinner /></div>;
+        return (
+            <div className="flex flex-col items-center justify-center pt-32 text-center">
+                <LoadingSpinner />
+                <p className="mt-4 text-xs font-bold text-indigo-400 uppercase tracking-widest animate-pulse">
+                    Loading Top Creators Directory...
+                </p>
+            </div>
+        );
     }
 
-    const currentCatInfo = getCategoryData(users[0] || { xp_balance: 0, gold_coins: 0, silver_coins: 0, diamond_coins: 0 }, category);
-
     return (
-        <div className="pb-36 min-h-screen bg-[var(--theme-bg)]">
+        <div className="pb-36 min-h-screen bg-[var(--theme-bg)] text-[var(--theme-text)]">
             {/* Confetti Explosion Trigger */}
             {isExploding && (
                 <div className="fixed top-1/4 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
@@ -370,208 +332,164 @@ const UsersPage: React.FC<UsersPageProps> = ({ session, onViewProfile }) => {
 
             {/* Celebration Toast */}
             <AnimatePresence>
-                {celebrationToast && (
+                {toastMessage && (
                     <motion.div 
-                        initial={{ opacity: 0, y: -50, scale: 0.9 }}
-                        animate={{ opacity: 1, y: 20, scale: 1 }}
-                        exit={{ opacity: 0, y: -20, scale: 0.9 }}
-                        className="fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-black font-extrabold px-6 py-3 rounded-full shadow-[0_0_30px_rgba(245,158,11,0.8)] border border-white text-sm md:text-base text-center max-w-md w-[90%]"
+                        initial={{ opacity: 0, y: -40, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -30, scale: 0.9 }}
+                        className="fixed top-5 inset-x-4 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:max-w-md w-auto z-[99999] mx-auto bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-black font-extrabold px-5 py-3 rounded-2xl shadow-[0_10px_35px_rgba(245,158,11,0.6)] border border-white text-xs sm:text-sm text-center tracking-wide"
                     >
-                        {celebrationToast}
+                        {toastMessage}
                     </motion.div>
                 )}
             </AnimatePresence>
 
-            {/* Hero Banner Section */}
-            <header className="relative overflow-hidden bg-gradient-to-b from-slate-950 via-purple-950 to-[var(--theme-card-bg)] pt-6 pb-8 px-4 border-b border-[var(--theme-secondary)]">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(168,85,247,0.2),transparent_70%)] pointer-events-none" />
+            {/* Hero Header Banner */}
+            <header className="relative overflow-hidden bg-gradient-to-b from-slate-950 via-indigo-950 to-[var(--theme-card-bg)] pt-8 pb-10 px-4 border-b border-gray-800">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(99,102,241,0.25),transparent_70%)] pointer-events-none" />
                 
-                <div className="max-w-7xl mx-auto relative z-10 px-2 sm:px-6">
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
-                        <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-yellow-500 via-amber-600 to-purple-600 flex items-center justify-center shadow-lg text-2xl">
-                                🏆
+                <div className="max-w-6xl mx-auto relative z-10 px-2 sm:px-6 text-center sm:text-left">
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+                        <div>
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-xs font-black uppercase tracking-wider mb-3">
+                                <span>✨ NAXXIVO Creator Network</span>
                             </div>
-                            <div>
-                                <div className="flex items-center gap-2">
-                                    <h1 className="font-logo text-2xl md:text-3xl font-black text-white tracking-wide">
-                                        LEADERBOARD
-                                    </h1>
-                                    <span className="animate-pulse bg-gradient-to-r from-red-500 to-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
-                                        ⚡ SEASON 1
-                                    </span>
-                                </div>
-                                <p className="text-xs text-slate-300 font-medium">
-                                    Dominate the arena, claim daily rewards, and build your legacy!
-                                </p>
-                            </div>
+                            <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+                                Top Creators & Content Directory
+                            </h1>
+                            <p className="text-xs sm:text-sm font-semibold text-slate-300 mt-2 max-w-2xl leading-relaxed">
+                                Search creators by content keywords (e.g. Gaming, Anime AMV, Tech, Music, Vlogs) and explore their social channels & bio link hubs.
+                            </p>
                         </div>
 
-                        {/* Stats Overview Pill */}
-                        <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/10 text-white text-xs">
-                            <div className="text-center">
-                                <span className="block font-black text-yellow-400">{sortedUsers.length}</span>
-                                <span className="text-[10px] text-slate-400">Warriors</span>
-                            </div>
-                            <div className="h-6 w-px bg-white/20" />
-                            <div className="text-center">
-                                <span className="block font-black text-purple-300">#{myRankInfo?.rank || '-'}</span>
-                                <span className="text-[10px] text-slate-400">Your Rank</span>
-                            </div>
+                        {myProfile && (
+                            <button
+                                onClick={() => onViewProfile(myProfile.id)}
+                                className="px-5 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-extrabold text-xs shadow-xl shadow-indigo-500/30 border border-white/20 transition-all hover:scale-105 active:scale-95 shrink-0 flex items-center gap-2"
+                            >
+                                <span>✨ My Creator Bio Page</span>
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Search Input Bar */}
+                    <div className="mt-8 relative max-w-2xl">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-indigo-400">
+                            <SearchIcon className="w-5 h-5" />
                         </div>
-                    </div>
-
-                    {/* Category Selector Tabs */}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-black/40 p-1.5 rounded-2xl border border-white/10 backdrop-blur-sm">
-                        {categories.map(cat => {
-                            const isActive = category === cat.id;
-                            return (
-                                <button
-                                    key={cat.id}
-                                    onClick={() => {
-                                        setCategory(cat.id);
-                                        setSearchQuery('');
-                                    }}
-                                    className={`relative flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 ${
-                                        isActive ? 'text-white shadow-md' : 'text-slate-400 hover:text-white hover:bg-white/5'
-                                    }`}
-                                >
-                                    {isActive && (
-                                        <motion.div
-                                            layoutId="lb-category-pill"
-                                            className="absolute inset-0 bg-gradient-to-r from-purple-600 via-indigo-600 to-purple-600 rounded-xl border border-purple-400/50 shadow-[0_0_15px_rgba(168,85,247,0.4)]"
-                                            transition={{ type: 'spring', stiffness: 350, damping: 30 }}
-                                        />
-                                    )}
-                                    <span className="relative z-10 flex items-center gap-1.5">
-                                        {cat.icon}
-                                        {cat.label}
-                                    </span>
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-            </header>
-
-            <div className="max-w-7xl mx-auto px-4 sm:px-8 mt-6">
-                {/* Search & Tier Filters */}
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-6">
-                    {/* Search Bar */}
-                    <div className="relative flex-grow max-w-md">
-                        <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--theme-text-secondary)]" />
                         <input
                             type="text"
-                            placeholder={`Search players by name or username...`}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-9 py-2.5 bg-[var(--theme-card-bg)] border border-[var(--theme-secondary)] rounded-xl text-sm font-medium text-[var(--theme-text)] placeholder:text-[var(--theme-text-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--theme-ring)] transition-all shadow-sm"
+                            placeholder="Search creators by name, @username, or keywords (e.g. Gaming, AMV, Music, Vlogs)..."
+                            className="w-full pl-12 pr-10 py-3.5 bg-black/60 border border-indigo-500/40 focus:border-indigo-400 rounded-2xl text-sm font-bold text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 backdrop-blur-md shadow-inner transition-all"
                         />
                         {searchQuery && (
                             <button
                                 onClick={() => setSearchQuery('')}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-[var(--theme-secondary)] flex items-center justify-center text-xs font-bold text-[var(--theme-text-secondary)] hover:bg-[var(--theme-secondary-hover)]"
+                                className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-white font-bold"
                             >
                                 ✕
                             </button>
                         )}
                     </div>
 
-                    {/* Filter Pills */}
-                    <div className="flex items-center gap-1.5 bg-[var(--theme-card-bg)] p-1 rounded-xl border border-[var(--theme-secondary)] self-start sm:self-auto shadow-sm">
-                        {(['all', 'top10', 'top50'] as TierFilter[]).map((tier) => (
+                    {/* Category Tag Pills */}
+                    <div className="flex items-center gap-2 overflow-x-auto pt-5 pb-2 scrollbar-none">
+                        {CATEGORY_TAGS.map(cat => (
                             <button
-                                key={tier}
-                                onClick={() => setTierFilter(tier)}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                                    tierFilter === tier 
-                                    ? 'bg-[var(--theme-primary)] text-[var(--theme-primary-text)] shadow-sm font-black' 
-                                    : 'text-[var(--theme-text-secondary)] hover:text-[var(--theme-text)] hover:bg-[var(--theme-card-bg-alt)]'
+                                key={cat.id}
+                                onClick={() => setSelectedCategory(cat.id)}
+                                className={`px-4 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all border flex items-center gap-1.5 ${
+                                    selectedCategory === cat.id
+                                        ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white border-indigo-400 shadow-lg shadow-indigo-500/25 scale-105'
+                                        : 'bg-black/40 hover:bg-black/60 text-slate-300 border-gray-700/60 hover:border-gray-500'
                                 }`}
                             >
-                                {tier === 'all' ? '🌐 All Arena' : tier === 'top10' ? '🔥 Top 10' : '⚡ Top 50'}
+                                <span>{cat.icon}</span>
+                                <span>{cat.label}</span>
                             </button>
                         ))}
                     </div>
                 </div>
+            </header>
 
-                <AnimatePresence mode="wait">
-                    <motion.div 
-                        key={`${category}-${tierFilter}-${searchQuery ? 'search' : 'no-search'}`}
-                        initial={{ opacity: 0, y: 15 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -15 }}
-                        transition={{ duration: 0.2 }}
-                    >
-                        {/* Top 3 Podium (Only show when not searching or if search results include top players) */}
-                        {!searchQuery && tierFilter === 'all' && topThree.length >= 3 && (
-                            <div className={`relative mb-8 rounded-3xl p-6 bg-gradient-to-b ${currentCatInfo.bgGlow} border ${currentCatInfo.borderGlow} shadow-xl backdrop-blur-sm overflow-hidden`}>
-                                <div className="absolute top-3 right-4 text-xs font-black text-[var(--theme-text-secondary)] flex items-center gap-1.5 uppercase tracking-wider">
-                                    <span>🌟 HALL OF CHAMPIONS</span>
-                                </div>
-                                <div className="flex justify-center items-end gap-2 sm:gap-6 pt-10 pb-4 max-w-2xl mx-auto">
-                                    {topThree[1] && <PodiumUser user={topThree[1]} rank={2} category={category} onViewProfile={onViewProfile} onCelebrate={handleCelebrate} />}
-                                    {topThree[0] && <PodiumUser user={topThree[0]} rank={1} category={category} onViewProfile={onViewProfile} onCelebrate={handleCelebrate} />}
-                                    {topThree[2] && <PodiumUser user={topThree[2]} rank={3} category={category} onViewProfile={onViewProfile} onCelebrate={handleCelebrate} />}
-                                </div>
-                            </div>
-                        )}
+            {/* Main Content Body */}
+            <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-8">
+                {/* Search / Filter Result Bar */}
+                <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-sm font-black uppercase tracking-wider text-[var(--theme-text-secondary)] flex items-center gap-2">
+                        <span>Directory List</span>
+                        <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400 text-xs font-extrabold border border-indigo-500/30">
+                            {filteredCreators.length} Creators
+                        </span>
+                    </h2>
+                    {searchQuery && (
+                        <button
+                            onClick={() => { setSearchQuery(''); setSelectedCategory('all'); }}
+                            className="text-xs font-bold text-indigo-400 hover:underline"
+                        >
+                            Reset Search Filters
+                        </button>
+                    )}
+                </div>
 
-                        {/* Leaderboard List Header */}
-                        <div className="flex items-center justify-between px-3 py-2 text-xs font-extrabold text-[var(--theme-text-secondary)] uppercase tracking-wider border-b border-[var(--theme-secondary)] mb-3">
-                            <span className="pl-2">Rank & Warrior</span>
-                            <span>Score</span>
+                {/* Top Spotlight Spotlight Cards (Top 3) if no search active */}
+                {!searchQuery && selectedCategory === 'all' && topCreators.length > 0 && (
+                    <div className="mb-10">
+                        <div className="flex items-center gap-2 mb-4">
+                            <span className="text-xl">👑</span>
+                            <h3 className="text-base font-black text-[var(--theme-text)]">
+                                Featured Top Creators
+                            </h3>
                         </div>
-
-                        {/* List Row Container */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                            <AnimatePresence>
-                                {filteredUsers.map((user) => {
-                                    const originalRank = sortedUsers.findIndex(u => u.id === user.id) + 1;
-                                    // If we are showing podium and no search is active, skip top 3 in list to avoid duplicates
-                                    if (!searchQuery && tierFilter === 'all' && originalRank <= 3) {
-                                        return null;
-                                    }
-                                    return (
-                                        <ListUserRow 
-                                            key={user.id} 
-                                            user={user} 
-                                            rank={originalRank} 
-                                            category={category} 
-                                            onViewProfile={onViewProfile}
-                                            isCurrentUser={user.id === session.user.id}
-                                        />
-                                    );
-                                })}
-                            </AnimatePresence>
-
-                            {filteredUsers.length === 0 && (
-                                <div className="text-center py-16 bg-[var(--theme-card-bg)] rounded-3xl border border-dashed border-[var(--theme-secondary)] p-8">
-                                    <div className="text-4xl mb-3">🔍</div>
-                                    <h3 className="text-lg font-bold text-[var(--theme-text)]">No Warriors Found</h3>
-                                    <p className="text-sm text-[var(--theme-text-secondary)] mt-1 max-w-sm mx-auto">
-                                        We couldn't find any players matching "{searchQuery}". Try searching for a different username!
-                                    </p>
-                                    <button
-                                        onClick={() => setSearchQuery('')}
-                                        className="mt-4 px-5 py-2 bg-[var(--theme-primary)] text-[var(--theme-primary-text)] font-bold text-xs rounded-xl shadow-sm hover:opacity-90 transition-opacity"
-                                    >
-                                        Clear Search
-                                    </button>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {topCreators.map((creator, idx) => (
+                                <div key={creator.id} onClick={() => handleCelebrateTop(creator)}>
+                                    <CreatorCard
+                                        creator={creator}
+                                        rank={idx + 1}
+                                        onViewProfile={onViewProfile}
+                                    />
                                 </div>
-                            )}
+                            ))}
                         </div>
-                    </motion.div>
-                </AnimatePresence>
-            </div>
-            
-            {/* Floating My Rank Banner */}
-            <AnimatePresence>
-                {myRankInfo && <MyRankBanner myRankInfo={myRankInfo} category={category} onViewProfile={onViewProfile} />}
-            </AnimatePresence>
+                    </div>
+                )}
+
+                {/* Creators Grid Directory */}
+                {filteredCreators.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {filteredCreators.map(creator => (
+                            <CreatorCard
+                                key={creator.id}
+                                creator={creator}
+                                onViewProfile={onViewProfile}
+                            />
+                        ))}
+                    </div>
+                ) : (
+                    <div className="py-20 text-center bg-[var(--theme-card-bg)] rounded-3xl border border-gray-500/20 p-8 max-w-md mx-auto">
+                        <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-3xl mx-auto mb-4">
+                            🔍
+                        </div>
+                        <h3 className="text-lg font-black text-[var(--theme-text)]">
+                            No Creators Found
+                        </h3>
+                        <p className="text-xs text-[var(--theme-text-secondary)] mt-1 leading-relaxed">
+                            No creators matched "{searchQuery || selectedCategory}". Try searching for another topic like Gaming, AMV, Music, or Vlogs!
+                        </p>
+                        <button
+                            onClick={() => { setSearchQuery(''); setSelectedCategory('all'); }}
+                            className="mt-6 px-5 py-2.5 rounded-2xl bg-indigo-600 text-white font-extrabold text-xs hover:bg-indigo-500 shadow-lg"
+                        >
+                            Show All Creators
+                        </button>
+                    </div>
+                )}
+            </main>
         </div>
     );
 };
 
 export default UsersPage;
-
