@@ -50,12 +50,12 @@ export type AuthView =
 
 const TAB_INDEX_MAP: Record<string, number> = {
     'discover': 0,
+    'tools': 1,
     'messages': 1,
     'profile': 2,
     'settings': 2,
     'edit-profile': 2,
     'music-library': 2,
-    'tools': 2,
     'anime': 2,
     'anime-series': 2,
     'create-series': 2,
@@ -208,7 +208,7 @@ const UserApp: React.FC<UserAppProps> = ({ session, onEnterAdminView }) => {
         await (supabase.auth as any).signOut();
     };
 
-    const handleSetAuthView = (view: 'discover' | 'chess' | 'profile' | 'messages') => {
+    const handleSetAuthView = (view: AuthView) => {
         setViewingProfileId(null);
         setChattingWith(null);
         setViewingSeriesId(null);
@@ -381,7 +381,7 @@ const UserApp: React.FC<UserAppProps> = ({ session, onEnterAdminView }) => {
                 </main>
                 {!isHideBottomNav && <BottomNav
                     activeView={authView}
-                    setAuthView={handleSetAuthView as (view: 'discover' | 'chess' | 'profile' | 'messages') => void}
+                    setAuthView={handleSetAuthView}
                 />}
                 <AnimatePresence>
                   {isSearchOpen && <SearchOverlay onClose={() => setIsSearchOpen(false)} onViewProfile={handleViewProfile} />}

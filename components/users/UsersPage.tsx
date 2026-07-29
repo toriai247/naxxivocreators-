@@ -82,21 +82,21 @@ export const CreatorCard: React.FC<{
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             whileHover={{ y: -4 }}
-            className="group relative bg-[var(--theme-card-bg)] rounded-3xl border border-gray-200/20 dark:border-gray-800/80 shadow-xl overflow-hidden transition-all duration-300 hover:border-indigo-500/50 hover:shadow-indigo-500/10 flex flex-col justify-between"
+            className="group relative bg-[var(--theme-card-bg)] rounded-3xl border border-amber-500/15 dark:border-amber-500/20 shadow-xl overflow-hidden transition-all duration-300 hover:border-amber-400/60 hover:shadow-[0_0_20px_rgba(245,158,11,0.15)] flex flex-col justify-between"
         >
             {/* Header / Cover Banner Backdrop */}
-            <div className="h-28 sm:h-32 bg-gradient-to-r from-indigo-900 via-purple-900 to-slate-900 relative overflow-hidden">
+            <div className="h-28 sm:h-32 bg-gradient-to-r from-amber-950 via-slate-900 to-amber-900 relative overflow-hidden">
                 {creator.cover_url ? (
                     <img src={creator.cover_url} alt="Cover" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 ) : (
-                    <div className="w-full h-full opacity-40 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-600 via-purple-600 to-pink-600" />
+                    <div className="w-full h-full opacity-40 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-500 via-yellow-600 to-amber-700" />
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-[var(--theme-card-bg)] via-black/30 to-transparent" />
 
                 {/* Optional Rank Badge */}
                 {rank && rank <= 3 && (
-                    <div className="absolute top-3 left-3 z-10 px-3 py-1 rounded-full bg-black/70 backdrop-blur-md border border-amber-400/50 flex items-center gap-1.5 shadow-lg">
-                        <span className="text-xs font-black text-amber-400">
+                    <div className="absolute top-3 left-3 z-10 px-3 py-1 rounded-full bg-black/80 backdrop-blur-md border border-amber-400 flex items-center gap-1.5 shadow-lg">
+                        <span className="text-xs font-black text-amber-300">
                             {rank === 1 ? '👑 #1 CREATOR' : rank === 2 ? '⚔️ #2 TOP' : '🛡️ #3 TOP'}
                         </span>
                     </div>
@@ -108,7 +108,7 @@ export const CreatorCard: React.FC<{
                 {/* Floating Avatar */}
                 <div 
                     onClick={() => onViewProfile(creator.id)}
-                    className="absolute -top-12 left-5 w-20 h-20 rounded-2xl p-1 bg-[var(--theme-card-bg)] shadow-xl cursor-pointer border-2 border-indigo-500/40 group-hover:border-indigo-400 transition-colors"
+                    className="absolute -top-12 left-5 w-20 h-20 rounded-2xl p-1 bg-[var(--theme-card-bg)] shadow-xl cursor-pointer border-2 border-amber-400/50 group-hover:border-amber-400 transition-colors"
                 >
                     <Avatar
                         photoUrl={creator.photo_url}
@@ -123,7 +123,7 @@ export const CreatorCard: React.FC<{
                 <div className="absolute -top-5 right-5 flex items-center gap-2">
                     <button
                         onClick={() => onViewProfile(creator.id)}
-                        className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-extrabold text-[11px] shadow-lg shadow-indigo-500/20 flex items-center gap-1 transition-transform active:scale-95"
+                        className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-[11px] shadow-md shadow-amber-500/20 flex items-center gap-1 transition-transform active:scale-95"
                     >
                         <span>Visit Profile</span>
                         <span>→</span>
@@ -135,20 +135,20 @@ export const CreatorCard: React.FC<{
                     <div className="flex items-center gap-1.5 flex-wrap">
                         <h3 
                             onClick={() => onViewProfile(creator.id)}
-                            className="font-black text-base text-[var(--theme-text)] hover:text-indigo-400 transition-colors cursor-pointer"
+                            className="font-black text-base text-[var(--theme-text)] hover:text-amber-400 transition-colors cursor-pointer"
                         >
                             {creator.name || creator.username}
                         </h3>
-                        <span className="text-blue-500 text-sm font-bold" title="Verified Creator">✓</span>
+                        <span className="text-amber-400 text-sm font-bold" title="Verified Creator">✓</span>
                     </div>
-                    <p className="text-xs font-bold text-indigo-400">
+                    <p className="text-xs font-bold text-amber-400/90">
                         @{creator.username}
                     </p>
                 </div>
 
                 {/* Tagline / Bio */}
                 {creator.bio_tagline ? (
-                    <p className="text-xs text-[var(--theme-text-secondary)] line-clamp-2 italic mb-3 bg-[var(--theme-card-bg-alt)] px-3 py-1.5 rounded-xl border border-gray-500/10">
+                    <p className="text-xs text-[var(--theme-text-secondary)] line-clamp-2 italic mb-3 bg-[var(--theme-card-bg-alt)] px-3 py-1.5 rounded-xl border border-amber-500/10">
                         "{creator.bio_tagline}"
                     </p>
                 ) : creator.bio ? (
@@ -163,7 +163,7 @@ export const CreatorCard: React.FC<{
                         {keywords.map((tag, idx) => (
                             <span 
                                 key={idx}
-                                className="px-2 py-0.5 rounded-lg text-[10px] font-extrabold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 uppercase tracking-wider"
+                                className="px-2 py-0.5 rounded-lg text-[10px] font-black bg-amber-400/10 text-amber-300 border border-amber-400/25 uppercase tracking-wider"
                             >
                                 #{tag}
                             </span>
@@ -178,7 +178,7 @@ export const CreatorCard: React.FC<{
                 )}
 
                 {/* Social Channels Direct Quick Links Bar */}
-                <div className="mt-auto pt-3 border-t border-gray-500/10 flex items-center justify-between gap-2">
+                <div className="mt-auto pt-3 border-t border-amber-500/10 flex items-center justify-between gap-2">
                     <div className="flex items-center gap-1.5 flex-wrap overflow-hidden max-w-[210px]">
                         {socialLinks.length > 0 ? (
                             socialLinks.slice(0, 5).map(social => (
@@ -198,7 +198,7 @@ export const CreatorCard: React.FC<{
                             <span className="text-[10px] text-gray-500 font-semibold">No direct channels linked</span>
                         )}
                         {socialLinks.length > 5 && (
-                            <span className="text-[10px] font-extrabold text-indigo-400 px-1 py-0.5">
+                            <span className="text-[10px] font-extrabold text-amber-400 px-1 py-0.5">
                                 +{socialLinks.length - 5}
                             </span>
                         )}
@@ -206,9 +206,9 @@ export const CreatorCard: React.FC<{
 
                     <button
                         onClick={() => onViewProfile(creator.id)}
-                        className="p-1.5 rounded-xl bg-[var(--theme-card-bg-alt)] border border-gray-500/20 text-gray-300 hover:text-white hover:border-indigo-500 text-xs font-extrabold flex items-center gap-1"
+                        className="p-1.5 rounded-xl bg-[var(--theme-card-bg-alt)] border border-amber-500/20 text-gray-300 hover:text-white hover:border-amber-400 text-xs font-extrabold flex items-center gap-1"
                     >
-                        <LinkHubIcon className="w-3.5 h-3.5 text-indigo-400" />
+                        <LinkHubIcon className="w-3.5 h-3.5 text-amber-400" />
                         <span>Bio Hub</span>
                     </button>
                 </div>
@@ -345,36 +345,36 @@ const UsersPage: React.FC<UsersPageProps> = ({ session, onViewProfile }) => {
             </AnimatePresence>
 
             {/* Hero Header Banner */}
-            <header className="relative overflow-hidden bg-gradient-to-b from-slate-950 via-indigo-950 to-[var(--theme-card-bg)] pt-8 pb-10 px-4 border-b border-gray-800">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(99,102,241,0.25),transparent_70%)] pointer-events-none" />
+            <header className="relative overflow-hidden bg-gradient-to-b from-slate-950 via-amber-950/40 to-[var(--theme-card-bg)] pt-8 pb-10 px-4 border-b border-amber-500/20">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(245,158,11,0.22),transparent_75%)] pointer-events-none" />
                 
                 <div className="max-w-6xl mx-auto relative z-10 px-2 sm:px-6 text-center sm:text-left">
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
                         <div>
-                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-xs font-black uppercase tracking-wider mb-3">
-                                <span>✨ NAXXIVO Creator Network</span>
+                            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-400/15 border border-amber-400/35 text-amber-300 text-xs font-black uppercase tracking-wider mb-3 shadow-[0_0_12px_rgba(245,158,11,0.2)]">
+                                <span>👑 NAXXIVO Creator Directory</span>
                             </div>
                             <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
-                                Top Creators & Content Directory
+                                Creators & Content Search
                             </h1>
                             <p className="text-xs sm:text-sm font-semibold text-slate-300 mt-2 max-w-2xl leading-relaxed">
-                                Search creators by content keywords (e.g. Gaming, Anime AMV, Tech, Music, Vlogs) and explore their social channels & bio link hubs.
+                                Search creators by name, @handle, or topics (e.g. Gaming, AMV, Music, Vlogs) and explore their social channels & bio hubs.
                             </p>
                         </div>
 
                         {myProfile && (
                             <button
                                 onClick={() => onViewProfile(myProfile.id)}
-                                className="px-5 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-extrabold text-xs shadow-xl shadow-indigo-500/30 border border-white/20 transition-all hover:scale-105 active:scale-95 shrink-0 flex items-center gap-2"
+                                className="px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-300 text-slate-950 font-black text-xs shadow-xl shadow-amber-500/25 border border-amber-200 transition-all hover:scale-105 active:scale-95 shrink-0 flex items-center gap-2"
                             >
-                                <span>✨ My Creator Bio Page</span>
+                                <span>👑 My Creator Bio Page</span>
                             </button>
                         )}
                     </div>
 
                     {/* Search Input Bar */}
                     <div className="mt-8 relative max-w-2xl">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-indigo-400">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-amber-400">
                             <SearchIcon className="w-5 h-5" />
                         </div>
                         <input
@@ -382,12 +382,12 @@ const UsersPage: React.FC<UsersPageProps> = ({ session, onViewProfile }) => {
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="Search creators by name, @username, or keywords (e.g. Gaming, AMV, Music, Vlogs)..."
-                            className="w-full pl-12 pr-10 py-3.5 bg-black/60 border border-indigo-500/40 focus:border-indigo-400 rounded-2xl text-sm font-bold text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 backdrop-blur-md shadow-inner transition-all"
+                            className="w-full pl-12 pr-10 py-3.5 bg-slate-950/80 border border-amber-400/50 focus:border-amber-400 rounded-2xl text-sm font-bold text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400/40 backdrop-blur-md shadow-[0_0_20px_rgba(245,158,11,0.15)] transition-all"
                         />
                         {searchQuery && (
                             <button
                                 onClick={() => setSearchQuery('')}
-                                className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-white font-bold"
+                                className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-amber-300 font-bold"
                             >
                                 ✕
                             </button>
@@ -400,10 +400,10 @@ const UsersPage: React.FC<UsersPageProps> = ({ session, onViewProfile }) => {
                             <button
                                 key={cat.id}
                                 onClick={() => setSelectedCategory(cat.id)}
-                                className={`px-4 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all border flex items-center gap-1.5 ${
+                                className={`px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap transition-all border flex items-center gap-1.5 ${
                                     selectedCategory === cat.id
-                                        ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white border-indigo-400 shadow-lg shadow-indigo-500/25 scale-105'
-                                        : 'bg-black/40 hover:bg-black/60 text-slate-300 border-gray-700/60 hover:border-gray-500'
+                                        ? 'bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-slate-950 border-amber-200 shadow-[0_0_18px_rgba(245,158,11,0.4)] scale-105'
+                                        : 'bg-slate-900/60 hover:bg-slate-800/80 text-slate-200 border-amber-500/20 hover:border-amber-400/50'
                                 }`}
                             >
                                 <span>{cat.icon}</span>
@@ -420,14 +420,14 @@ const UsersPage: React.FC<UsersPageProps> = ({ session, onViewProfile }) => {
                 <div className="flex items-center justify-between mb-6">
                     <h2 className="text-sm font-black uppercase tracking-wider text-[var(--theme-text-secondary)] flex items-center gap-2">
                         <span>Directory List</span>
-                        <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400 text-xs font-extrabold border border-indigo-500/30">
+                        <span className="px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 text-xs font-extrabold border border-amber-400/30">
                             {filteredCreators.length} Creators
                         </span>
                     </h2>
                     {searchQuery && (
                         <button
                             onClick={() => { setSearchQuery(''); setSelectedCategory('all'); }}
-                            className="text-xs font-bold text-indigo-400 hover:underline"
+                            className="text-xs font-bold text-amber-400 hover:underline"
                         >
                             Reset Search Filters
                         </button>

@@ -178,18 +178,18 @@ const HomePage: React.FC<HomePageProps> = ({ session, onViewProfile, refreshKey,
 
     return (
         <div className="space-y-4">
-            <header className="flex justify-between items-center">
-                <div className="text-3xl">
+            <header className="flex justify-between items-center pl-24 sm:pl-28 pr-1 py-1">
+                <div className="text-xl sm:text-2xl font-bold">
                   <Logo/>
                 </div>
-                <div className="flex items-center space-x-4">
-                    <button onClick={onOpenSearch} className="text-[var(--theme-text-secondary)] hover:text-[var(--theme-primary)]">
+                <div className="flex items-center space-x-2">
+                    <button onClick={onOpenSearch} className="p-1.5 rounded-lg text-[var(--theme-text-secondary)] hover:text-[var(--theme-primary)] hover:bg-[var(--theme-card-bg-alt)] transition-colors">
                         <SearchIcon />
                     </button>
-                    <button onClick={onOpenNotifications} className="relative text-[var(--theme-text-secondary)] hover:text-[var(--theme-primary)]">
+                    <button onClick={onOpenNotifications} className="relative p-1.5 rounded-lg text-[var(--theme-text-secondary)] hover:text-[var(--theme-primary)] hover:bg-[var(--theme-card-bg-alt)] transition-colors">
                         <BellIcon />
                         {unreadNotificationCount > 0 && (
-                            <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-[var(--theme-bg)]" />
+                            <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-[var(--theme-bg)]" />
                         )}
                     </button>
                 </div>

@@ -17,17 +17,17 @@ export const PerformanceToggle: React.FC<PerformanceToggleProps> = ({ variant = 
                     onClick={toggleMode}
                     onMouseEnter={() => setShowInfo(true)}
                     onMouseLeave={() => setShowInfo(false)}
-                    className={`flex items-center gap-1.5 px-2.5 py-1 font-mono text-[11px] font-black uppercase border shadow-xs transition-none ${
+                    className={`flex items-center gap-1.5 font-mono text-[10px] font-black uppercase transition-all select-none ${
                         isLowMode
-                            ? 'bg-emerald-500 hover:bg-emerald-600 text-white border-slate-900'
-                            : 'bg-yellow-400 hover:bg-yellow-300 text-slate-950 border-slate-900'
+                            ? 'bg-amber-400 hover:bg-amber-300 text-slate-950 border-2 border-slate-950 rounded-md px-2 py-0.5 shadow-none'
+                            : 'bg-amber-100/90 hover:bg-amber-200/90 text-amber-950 border border-amber-400 rounded-full px-2.5 py-1 shadow-[0_0_12px_rgba(245,158,11,0.35)]'
                     } ${className}`}
-                    title={isLowMode ? "Low Performance Mode (0 Lag, Fast Load) - Click to Switch" : "High Performance Mode (Full FX) - Click to Switch"}
+                    title={isLowMode ? "Low Performance Mode (0 Lag 2D) - Click to Switch" : "High Performance Mode (Glassy Ultra FX) - Click to Switch"}
                 >
                     <span className="text-xs">{isLowMode ? '⚡' : '✨'}</span>
-                    <span>{isLowMode ? 'LOW (0-LAG)' : 'HIGH (ULTRA)'}</span>
+                    <span>{isLowMode ? 'LOW 2D' : 'HIGH GLASS'}</span>
                     <span className={`px-1 rounded text-[9px] font-mono font-bold ${
-                        fps >= 50 ? 'bg-black/20 text-white' : 'bg-rose-600 text-white'
+                        fps >= 50 ? 'bg-black/30 text-emerald-300' : 'bg-rose-600 text-white'
                     }`}>
                         {fps} FPS
                     </span>
@@ -35,17 +35,17 @@ export const PerformanceToggle: React.FC<PerformanceToggleProps> = ({ variant = 
 
                 {/* Floating tooltip with live hardware diagnostics on hover */}
                 {showInfo && (
-                    <div className="absolute left-0 top-full mt-1.5 w-56 p-2.5 bg-slate-900 text-white border border-slate-700 shadow-xl z-50 text-[10px] font-mono space-y-1">
-                        <div className="flex items-center justify-between text-yellow-400 font-bold border-b border-slate-800 pb-1">
+                    <div className="absolute left-0 top-full mt-1.5 w-56 p-2.5 bg-slate-900/95 backdrop-blur-xl text-white border border-slate-700 rounded-lg shadow-xl z-50 text-[10px] font-mono space-y-1">
+                        <div className="flex items-center justify-between text-amber-400 font-bold border-b border-slate-800 pb-1">
                             <span>HARDWARE & LAG MONITOR</span>
                             <span>{fps} FPS</span>
                         </div>
                         <div className="text-slate-300 space-y-0.5 pt-0.5">
-                            <p>Mode: <span className={isLowMode ? "text-emerald-400 font-bold" : "text-yellow-400 font-bold"}>{isLowMode ? "LOW (0-LAG)" : "HIGH (ULTRA)"}</span></p>
+                            <p>Mode: <span className={isLowMode ? "text-emerald-400 font-bold" : "text-amber-300 font-bold"}>{isLowMode ? "LOW (2D / 0-LAG)" : "HIGH (GLASS / ULTRA)"}</span></p>
                             <p>CPU Cores: {deviceSpecs.cores}</p>
                             {deviceSpecs.memoryGB && <p>RAM: ~{deviceSpecs.memoryGB} GB</p>}
-                            <p className="text-slate-400 text-[9px] pt-1">
-                                {isLowMode ? "✓ 0 Animations • 0 Blurs • Min CPU usage" : "⚡ Full graphics & transition effects"}
+                            <p className="text-slate-400 text-[9px] pt-1 leading-tight">
+                                {isLowMode ? "✓ 2D Flat Buttons • 0 Animations • 0 Blurs" : "✨ Glassmorphism • Spring Physics • Glows"}
                             </p>
                         </div>
                     </div>

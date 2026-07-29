@@ -146,6 +146,161 @@ const defaultState: LightroomState = {
     flipV: false,
 };
 
+export function parseJsonPresetToState(jsonObj: any): Partial<LightroomState> {
+    if (!jsonObj || typeof jsonObj !== 'object') return {};
+    const newState: Partial<LightroomState> = {};
+
+    if (jsonObj.light) {
+        if (typeof jsonObj.light.exposure === 'number') newState.exposure = jsonObj.light.exposure;
+        if (typeof jsonObj.light.contrast === 'number') newState.contrast = jsonObj.light.contrast;
+        if (typeof jsonObj.light.highlights === 'number') newState.highlights = jsonObj.light.highlights;
+        if (typeof jsonObj.light.shadows === 'number') newState.shadows = jsonObj.light.shadows;
+        if (typeof jsonObj.light.whites === 'number') newState.whites = jsonObj.light.whites;
+        if (typeof jsonObj.light.blacks === 'number') newState.blacks = jsonObj.light.blacks;
+    }
+
+    if (jsonObj.color) {
+        if (typeof jsonObj.color.temperature === 'number') newState.temperature = jsonObj.color.temperature;
+        if (typeof jsonObj.color.tint === 'number') newState.tint = jsonObj.color.tint;
+        if (typeof jsonObj.color.vibrance === 'number') newState.vibrance = jsonObj.color.vibrance;
+        if (typeof jsonObj.color.saturation === 'number') newState.saturation = jsonObj.color.saturation;
+    }
+
+    if (jsonObj.effects) {
+        if (typeof jsonObj.effects.texture === 'number') newState.texture = jsonObj.effects.texture;
+        if (typeof jsonObj.effects.clarity === 'number') newState.clarity = jsonObj.effects.clarity;
+        if (typeof jsonObj.effects.dehaze === 'number') newState.dehaze = jsonObj.effects.dehaze;
+        if (typeof jsonObj.effects.vignette === 'number') newState.vignette = jsonObj.effects.vignette;
+        if (typeof jsonObj.effects.grain === 'number') newState.grain = jsonObj.effects.grain;
+    }
+
+    if (jsonObj.detail) {
+        if (typeof jsonObj.detail.sharpening === 'number') newState.sharpening = jsonObj.detail.sharpening;
+        if (typeof jsonObj.detail.noiseReduction === 'number') newState.noiseReduction = jsonObj.detail.noiseReduction;
+        if (typeof jsonObj.detail.colorNoiseReduction === 'number') newState.colorNoiseRed = jsonObj.detail.colorNoiseReduction;
+    }
+
+    if (jsonObj.colorGrading) {
+        if (jsonObj.colorGrading.shadows) {
+            if (typeof jsonObj.colorGrading.shadows.hue === 'number') newState.shadowsHue = jsonObj.colorGrading.shadows.hue;
+            if (typeof jsonObj.colorGrading.shadows.saturation === 'number') newState.shadowsSat = jsonObj.colorGrading.shadows.saturation;
+        }
+        if (jsonObj.colorGrading.highlights) {
+            if (typeof jsonObj.colorGrading.highlights.hue === 'number') newState.highlightsHue = jsonObj.colorGrading.highlights.hue;
+            if (typeof jsonObj.colorGrading.highlights.saturation === 'number') newState.highlightsSat = jsonObj.colorGrading.highlights.saturation;
+        }
+        if (typeof jsonObj.colorGrading.balance === 'number') newState.balance = jsonObj.colorGrading.balance;
+    }
+
+    if (jsonObj.hsl) {
+        const hslCopy: Record<HSLColorChannel, HSLChannelSettings> = JSON.parse(JSON.stringify(defaultHSLChannels));
+        const channelsMap: Record<string, HSLColorChannel> = {
+            red: 'red',
+            orange: 'orange',
+            yellow: 'yellow',
+            green: 'green',
+            aqua: 'cyan',
+            cyan: 'cyan',
+            blue: 'blue',
+            purple: 'purple',
+            magenta: 'magenta',
+        };
+
+        Object.keys(jsonObj.hsl).forEach(key => {
+            const mappedKey = channelsMap[key.toLowerCase()];
+            if (mappedKey && jsonObj.hsl[key]) {
+                const chData = jsonObj.hsl[key];
+                hslCopy[mappedKey] = {
+                    hue: typeof chData.hue === 'number' ? chData.hue : 0,
+                    saturation: typeof chData.saturation === 'number' ? chData.saturation : 0,
+                    luminance: typeof chData.luminance === 'number' ? chData.luminance : 0,
+                };
+            }
+        });
+
+        newState.hsl = hslCopy;
+    }
+
+    return newState;
+}
+
+function applyHSLAdjustments(
+    r: number, g: number, b: number,
+    hsl: Record<HSLColorChannel, HSLChannelSettings>
+): { r: number; g: number; b: number } {
+    const rNorm = r / 255;
+    const gNorm = g / 255;
+    const bNorm = b / 255;
+
+    const max = Math.max(rNorm, gNorm, bNorm);
+    const min = Math.min(rNorm, gNorm, bNorm);
+    const d = max - min;
+
+    let h = 0;
+    let s = 0;
+    let l = (max + min) / 2;
+
+    if (d !== 0) {
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+            case rNorm: h = (gNorm - bNorm) / d + (gNorm < bNorm ? 6 : 0); break;
+            case gNorm: h = (bNorm - rNorm) / d + 2; break;
+            case bNorm: h = (rNorm - gNorm) / d + 4; break;
+        }
+        h /= 6;
+    }
+
+    const hueDeg = h * 360;
+
+    let ch: HSLChannelSettings | null = null;
+    if (hueDeg >= 345 || hueDeg < 15) ch = hsl.red;
+    else if (hueDeg >= 15 && hueDeg < 45) ch = hsl.orange;
+    else if (hueDeg >= 45 && hueDeg < 75) ch = hsl.yellow;
+    else if (hueDeg >= 75 && hueDeg < 150) ch = hsl.green;
+    else if (hueDeg >= 150 && hueDeg < 210) ch = hsl.cyan;
+    else if (hueDeg >= 210 && hueDeg < 255) ch = hsl.blue;
+    else if (hueDeg >= 255 && hueDeg < 285) ch = hsl.purple;
+    else if (hueDeg >= 285 && hueDeg < 345) ch = hsl.magenta;
+
+    if (!ch || (ch.hue === 0 && ch.saturation === 0 && ch.luminance === 0)) {
+        return { r, g, b };
+    }
+
+    let newH = (hueDeg + ch.hue * 0.5) % 360;
+    if (newH < 0) newH += 360;
+    let newS = Math.min(1, Math.max(0, s + (ch.saturation / 100) * (s > 0 ? s : 0.5)));
+    let newL = Math.min(1, Math.max(0, l + (ch.luminance / 100) * 0.25));
+
+    const hNorm = newH / 360;
+    let newR: number, newG: number, newB: number;
+
+    if (newS === 0) {
+        newR = newG = newB = newL;
+    } else {
+        const q = newL < 0.5 ? newL * (1 + newS) : newL + newS - newL * newS;
+        const pVal = 2 * newL - q;
+
+        const hue2rgb = (p: number, q: number, t: number) => {
+            if (t < 0) t += 1;
+            if (t > 1) t -= 1;
+            if (t < 1 / 6) return p + (q - p) * 6 * t;
+            if (t < 1 / 2) return q;
+            if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+            return p;
+        };
+
+        newR = hue2rgb(pVal, q, hNorm + 1 / 3);
+        newG = hue2rgb(pVal, q, hNorm);
+        newB = hue2rgb(pVal, q, hNorm - 1 / 3);
+    }
+
+    return {
+        r: Math.min(255, Math.max(0, newR * 255)),
+        g: Math.min(255, Math.max(0, newG * 255)),
+        b: Math.min(255, Math.max(0, newB * 255)),
+    };
+}
+
 // Preset Profiles
 const LIGHTROOM_PRESETS: { id: string; name: string; icon: string; state: Partial<LightroomState> }[] = [
     {
@@ -153,6 +308,46 @@ const LIGHTROOM_PRESETS: { id: string; name: string; icon: string; state: Partia
         name: 'Original',
         icon: '🔄',
         state: defaultState,
+    },
+    {
+        id: 'imported_preset',
+        name: 'Imported Preset',
+        icon: '✨',
+        state: {
+            exposure: 0,
+            contrast: -12,
+            highlights: -69,
+            shadows: 60,
+            whites: -61,
+            blacks: -60,
+            temperature: 0,
+            tint: 0,
+            vibrance: 50,
+            saturation: 0,
+            texture: 5,
+            clarity: -8,
+            dehaze: 0,
+            vignette: -7,
+            grain: 0,
+            sharpening: 15,
+            noiseReduction: 0,
+            colorNoiseRed: 0,
+            shadowsHue: 222,
+            shadowsSat: 10,
+            highlightsHue: 204,
+            highlightsSat: 27,
+            balance: 0,
+            hsl: {
+                red: { hue: -21, saturation: -30, luminance: -15 },
+                orange: { hue: 14, saturation: -35, luminance: 5 },
+                yellow: { hue: -16, saturation: -14, luminance: -20 },
+                green: { hue: -2, saturation: -22, luminance: -52 },
+                cyan: { hue: 38, saturation: -68, luminance: 25 },
+                blue: { hue: 14, saturation: -96, luminance: -13 },
+                purple: { hue: -91, saturation: 0, luminance: 0 },
+                magenta: { hue: 0, saturation: 0, luminance: 0 },
+            }
+        }
     },
     {
         id: 'cinematic',
@@ -320,6 +515,53 @@ export const LightroomEditorStudio: React.FC<LightroomEditorStudioProps> = ({
     const [selectedHSLChannel, setSelectedHSLChannel] = useState<HSLColorChannel>('red');
     const [showBefore, setShowBefore] = useState<boolean>(false);
 
+    // Custom JSON Import Modal & Saved Presets
+    const [showImportModal, setShowImportModal] = useState<boolean>(false);
+    const [jsonInput, setJsonInput] = useState<string>('');
+    const [customPresets, setCustomPresets] = useState<{ id: string; name: string; icon: string; state: Partial<LightroomState> }[]>(() => {
+        try {
+            const saved = localStorage.getItem('naxstudio_custom_presets');
+            return saved ? JSON.parse(saved) : [];
+        } catch {
+            return [];
+        }
+    });
+
+    const handleImportJson = (jsonStr?: string) => {
+        const textToParse = jsonStr || jsonInput;
+        if (!textToParse.trim()) {
+            showStatus('error', 'Please paste JSON preset text first.');
+            return;
+        }
+        try {
+            const parsed = JSON.parse(textToParse);
+            const parsedState = parseJsonPresetToState(parsed);
+            const presetName = parsed.presetName || 'Custom Imported Preset';
+            const newPresetObj = {
+                id: 'custom_' + Date.now(),
+                name: presetName,
+                icon: '⚡',
+                state: parsedState,
+            };
+
+            applyPreset(parsedState);
+
+            const updated = [newPresetObj, ...customPresets];
+            setCustomPresets(updated);
+            try {
+                localStorage.setItem('naxstudio_custom_presets', JSON.stringify(updated));
+            } catch (e) {
+                console.error(e);
+            }
+
+            setShowImportModal(false);
+            setJsonInput('');
+            showStatus('success', `Preset "${presetName}" imported and applied!`);
+        } catch (e) {
+            showStatus('error', 'Invalid JSON syntax. Please check your JSON format.');
+        }
+    };
+
     // History Stack for Undo/Redo
     const [history, setHistory] = useState<LightroomState[]>([defaultState]);
     const [historyIndex, setHistoryIndex] = useState<number>(0);
@@ -447,7 +689,8 @@ export const LightroomEditorStudio: React.FC<LightroomEditorStudioProps> = ({
         // Check if any color/tone modifications are applied
         const hasToneCurve = (p.curveShadowsY !== 0.25 || p.curveMidtonesY !== 0.50 || p.curveHighlightsY !== 0.75);
         const hasColorGrading = (p.shadowsSat > 0 || p.highlightsSat > 0);
-        const hasBasicTones = (p.exposure !== 0 || p.contrast !== 0 || p.highlights !== 0 || p.shadows !== 0 || p.whites !== 0 || p.blacks !== 0 || p.temperature !== 0 || p.tint !== 0 || p.vibrance !== 0 || p.saturation !== 0 || p.dehaze !== 0 || p.grain > 0);
+        const hasHSL = p.hsl && Object.values(p.hsl).some((ch: any) => ch && (ch.hue !== 0 || ch.saturation !== 0 || ch.luminance !== 0));
+        const hasBasicTones = (p.exposure !== 0 || p.contrast !== 0 || p.highlights !== 0 || p.shadows !== 0 || p.whites !== 0 || p.blacks !== 0 || p.temperature !== 0 || p.tint !== 0 || p.vibrance !== 0 || p.saturation !== 0 || p.dehaze !== 0 || p.grain > 0 || hasHSL);
 
         // If no edits are present, skip heavy pixel array manipulation!
         if (!hasBasicTones && !hasToneCurve && !hasColorGrading && p.vignette === 0) {
@@ -557,6 +800,14 @@ export const LightroomEditorStudio: React.FC<LightroomEditorStudioProps> = ({
                     g = avgRGB + (g - avgRGB) * (1 + globalSatAmount);
                     b = avgRGB + (b - avgRGB) * (1 + globalSatAmount);
                 }
+            }
+
+            // 5.5 HSL Color Mix Channel Adjustments
+            if (hasHSL) {
+                const adjusted = applyHSLAdjustments(r, g, b, p.hsl);
+                r = adjusted.r;
+                g = adjusted.g;
+                b = adjusted.b;
             }
 
             // 6. Split Toning / Color Grading
@@ -899,13 +1150,16 @@ export const LightroomEditorStudio: React.FC<LightroomEditorStudioProps> = ({
                                         <span className="w-2 h-2 bg-yellow-400 border border-slate-900"></span>
                                         <span>COLOR PROFILES & PRESETS</span>
                                     </h3>
-                                    <span className="text-[10px] text-slate-500 font-mono font-bold">
-                                        ONE-CLICK GRADES
-                                    </span>
+                                    <button
+                                        onClick={() => setShowImportModal(true)}
+                                        className="px-2.5 py-1 bg-yellow-400 hover:bg-yellow-500 text-slate-950 font-mono font-black text-[10px] uppercase border border-slate-900 shadow-xs flex items-center gap-1"
+                                    >
+                                        <span>📋 PASTE JSON PRESET</span>
+                                    </button>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-2.5">
-                                    {LIGHTROOM_PRESETS.map(preset => (
+                                    {[...LIGHTROOM_PRESETS, ...customPresets].map(preset => (
                                         <button
                                             key={preset.id}
                                             onClick={() => applyPreset(preset.state)}
@@ -1351,6 +1605,81 @@ export const LightroomEditorStudio: React.FC<LightroomEditorStudioProps> = ({
                     </div>
                 </div>
             </div>
+
+            {/* Import JSON Preset Modal */}
+            {showImportModal && (
+                <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+                    <div className="bg-white border-2 border-slate-900 shadow-2xl w-full max-w-lg p-5 space-y-4 font-sans relative">
+                        <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                            <h3 className="text-sm font-black text-slate-900 uppercase font-mono flex items-center gap-2">
+                                <span className="w-2.5 h-2.5 bg-yellow-400 border border-slate-900"></span>
+                                <span>IMPORT LIGHTROOM JSON PRESET</span>
+                            </h3>
+                            <button
+                                onClick={() => setShowImportModal(false)}
+                                className="w-7 h-7 bg-slate-100 hover:bg-slate-200 text-slate-900 font-mono font-bold flex items-center justify-center border border-slate-300"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <p className="text-xs text-slate-600 font-medium leading-relaxed">
+                            Paste your JSON preset configuration (containing <code className="bg-slate-100 px-1 py-0.5 rounded font-mono text-[11px]">light</code>, <code className="bg-slate-100 px-1 py-0.5 rounded font-mono text-[11px]">color</code>, <code className="bg-slate-100 px-1 py-0.5 rounded font-mono text-[11px]">effects</code>, <code className="bg-slate-100 px-1 py-0.5 rounded font-mono text-[11px]">hsl</code> settings) to apply directly.
+                        </p>
+
+                        <textarea
+                            value={jsonInput}
+                            onChange={e => setJsonInput(e.target.value)}
+                            placeholder={`Paste JSON Preset here...\n{\n  "presetName": "Imported Preset",\n  "light": { "exposure": 0.00, "contrast": -12, ... }\n}`}
+                            className="w-full h-48 p-3 font-mono text-xs bg-slate-50 border border-slate-300 focus:border-slate-900 focus:bg-white focus:outline-none text-slate-800 resize-none"
+                        />
+
+                        <div className="flex items-center justify-between gap-3 pt-1">
+                            <button
+                                onClick={() => {
+                                    const userSampleJson = JSON.stringify({
+                                        "presetName": "Imported Preset",
+                                        "light": { "exposure": 0, "contrast": -12, "highlights": -69, "shadows": 60, "whites": -61, "blacks": -60 },
+                                        "color": { "temperature": 0, "tint": 0, "vibrance": 50, "saturation": 0 },
+                                        "effects": { "texture": 5, "clarity": -8, "dehaze": 0, "vignette": -7, "grain": 0 },
+                                        "detail": { "sharpening": 15, "radius": 1, "detail": 25, "masking": 0, "noiseReduction": 0, "colorNoiseReduction": 0 },
+                                        "hsl": {
+                                            "red": { "hue": -21, "saturation": -30, "luminance": -15 },
+                                            "orange": { "hue": 14, "saturation": -35, "luminance": 5 },
+                                            "yellow": { "hue": -16, "saturation": -14, "luminance": -20 },
+                                            "green": { "hue": -2, "saturation": -22, "luminance": -52 },
+                                            "aqua": { "hue": 38, "saturation": -68, "luminance": 25 },
+                                            "blue": { "hue": 14, "saturation": -96, "luminance": -13 },
+                                            "purple": { "hue": -91, "saturation": 0, "luminance": 0 },
+                                            "magenta": { "hue": 0, "saturation": 0, "luminance": 0 }
+                                        },
+                                        "colorGrading": { "shadows": { "hue": 222, "saturation": 10 }, "highlights": { "hue": 204, "saturation": 27 }, "balance": 0 }
+                                    }, null, 2);
+                                    setJsonInput(userSampleJson);
+                                }}
+                                className="text-xs text-yellow-700 hover:text-yellow-900 font-mono font-bold underline"
+                            >
+                                Load Sample Preset JSON
+                            </button>
+
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => setShowImportModal(false)}
+                                    className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-mono font-bold text-xs border border-slate-300"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={() => handleImportJson()}
+                                    className="px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-slate-950 font-mono font-black text-xs uppercase border border-slate-900 shadow-sm"
+                                >
+                                    Import & Apply
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
